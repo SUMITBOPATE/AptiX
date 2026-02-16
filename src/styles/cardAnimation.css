@@ -1,0 +1,15 @@
+@keyframes pulse-border-animation {
+  0% {
+    box-shadow: 0 0 0 0px var(--color-warning-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 8px var(--color-warning-glow-fade);
+  }
+  100% {
+    box-shadow: 0 0 0 0px var(--color-warning-glow-fade);
+  }
+}
+
+.pulse-border-amber {
+  animation: pulse-border-animation 2s infinite cubic-bezier(0.66, 0, 0, 1);
+}

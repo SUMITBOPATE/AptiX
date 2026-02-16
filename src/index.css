@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+:root {
+  --radius: 0.45rem;
+}
+
+.rounded-4xl {
+  border-radius: calc(var(--radius) + 16px);
+}
+
+/* Vertical dotted lines */
+.slant-line-left {
+  position: fixed;
+  left: 3rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+.slant-line-right {
+  position: fixed;
+  right: 3rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+/* Boundary dotted lines (screen edge) */
+.slant-line-left-edge {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+.slant-line-right-edge {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+/* Horizontal slanting lines between vertical lines */
+.slant-h-line {
+  position: fixed;
+  height: 1px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+/* Horizontal lines in left lane (between edge and inner line) */
+.slant-h-line-left {
+  position: fixed;
+  left: 0;
+  height: 1px;
+  width: 3rem;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+/* Horizontal lines in right lane (between inner line and edge) */
+.slant-h-line-right {
+  position: fixed;
+  right: 0;
+  height: 1px;
+  width: 3rem;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(163, 163, 163, 0.3) 6px,
+    rgba(163, 163, 163, 0.3) 12px
+  );
+}
+
+@theme {
+  /* Colors */
+  --color-primary: rgb(42, 163, 118);
+  --color-primary-strong: rgb(24, 121, 89);
+  --color-primary-soft: rgb(199, 231, 221);
+  --color-text: rgb(115, 115, 115);
+  --color-text-strong: rgb(57, 57, 57);
+  --color-text-muted: rgb(163, 163, 163);
+  --color-bg: rgb(250, 250, 250);
+  --color-surface: rgb(245, 245, 245);
+  --color-surface-2: rgb(237, 237, 237);
+  --color-border: rgb(224, 224, 224);
+  --color-secondary: rgb(117, 142, 200);
+  --color-secondary-soft: rgb(209, 218, 232);
+  --color-warning: rgb(229, 183, 59);
+  --color-danger: rgb(204, 97, 84);
+  --color-success: rgb(72, 164, 136);
+   
+
+
+
+--
+  /* Shadows */
+  --shadow-soft: 0 8px 24px oklch(35% 0.02 286.067 / 0.12);
+  --shadow-card: 0 12px 32px oklch(35% 0.02 286.067 / 0.16);
+
+  /* Font */
+  --font-sans: "Funnel Sans", "Manrope", "Inter", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-family: var(--font-sans);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+/* LEFT SIDE SLANTED RAIL */
+.slanted-rail-left {
+  background-image: repeating-linear-gradient(
+    -14deg,
+    rgba(0, 0, 0, 0.10),
+    rgba(0, 0, 0, 0.10) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+/* RIGHT SIDE SLANTED RAIL */
+.slanted-rail-right {
+  background-image: repeating-linear-gradient(
+    14deg,
+    rgba(0, 0, 0, 0.10),
+    rgba(0, 0, 0, 0.10) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
