@@ -115,9 +115,9 @@
 
 @theme {
   /* Colors */
-  --color-primary: rgb(42, 163, 118);
+  --color-primary: oklch(84.1% 0.238 128.85);
   --color-primary-strong: rgb(24, 121, 89);
-  --color-primary-soft: rgb(199, 231, 221);
+  --color-primary-soft:oklch(76.8% 0.233 130.85);
   --color-text: rgb(115, 115, 115);
   --color-text-strong: rgb(57, 57, 57);
   --color-text-muted: rgb(163, 163, 163);
