@@ -1,50 +1,45 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import Button from './ui/Button';
-import BookIcon from '../icons/BookIcon';
-import QuestionCountIcon from '../icons/QuestionCountIcon';
+import { HugeiconsIcon } from '@hugeicons/react'
+import {Book04Icon,HelpCircleIcon} from '@hugeicons/core-free-icons';
 
 export default function TopicCard({ topic }) {
-  
   const { title, details, numberOfQuestions, description, slug } = topic;
- const handleStartLearning = () => {
-  
-    console.log(`Navigating to /practice/${slug}`);
-  };
+
   return (
-
-   
-
-
-    <div id="topics-section" className="bg-color-bg shadow-lg rounded-xl p-6 border border-green-100 transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-[1.02]">
-    
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">{title}</h2>
-      <p className="text-gray-500 mb-4">{description}</p>
+    <div className="group bg-white shadow-soft rounded-xl p-8 border border-border transition-all duration-300 ease-in-out hover:shadow-card">
+      {/* Title */}
+      <h2 className="text-2xl font-semibold text-text-strong mb-3 leading-tight">
+        {title}
+      </h2>
+      
+      {/* Description */}
+      <p className="text-base text-text mb-6 leading-relaxed">
+        {description}
+      </p>
   
-      <div className="flex justify-between items-center text-gray-600 mb-6">
-     
-        <div className="flex items-center space-x-2">
-          <BookIcon className="text-amber-500" />
-          <span className="font-semibold">{details}</span>
+      {/* Stats */}
+      <div className="flex items-center gap-6 mb-8">
+        <div className="flex items-center gap-2">
+          <HugeiconsIcon 
+            icon={Book04Icon} 
+            className="w-5 h-5 text-primary" 
+          />
+          <span className="text-sm font-medium text-text-strong">{details}</span>
         </div>
 
-
-        <div className="flex items-center space-x-2">
-          <QuestionCountIcon className="text-amber-500" />
-          <span className="font-semibold">{numberOfQuestions}</span>
+        <div className="flex items-center gap-2">
+          <HugeiconsIcon 
+            icon={HelpCircleIcon} 
+            className="w-5 h-5 text-primary" 
+          />
+          <span className="text-sm font-medium text-text-strong">{numberOfQuestions}</span>
         </div>
       </div>
-       <div >
 
-
-        
-       </div>
-
-
-
- 
+      {/* CTA Button */}
       <Link to={`/practice/${slug}`}>
-       
         <Button />
       </Link>
     </div>

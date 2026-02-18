@@ -5,18 +5,17 @@ const Button = ({
   text = "Start Learning",
   className = "",
   disabled = false,
-  variant = "green" // "default", "green", "blue", etc.
+  variant = "primary" // "primary", "secondary", etc.
 }) => {
-  // Color variants
+  // Color variants using theme colors
   const variants = {
-    default: "bg-green-500 text-white hover:bg-green-600",
-    green: "bg-lime-500 text-white hover:bg-lime-600",
-    blue: "bg-blue-500 text-white hover:bg-blue-600",
-    purple: "bg-purple-500 text-white hover:bg-purple-600",
+    primary: "bg-primary text-white  hover:blur-[0.5px] hover:scale-[0.97]",
+    //  hover:bg-primary-soft",
+    // secondary: "bg-primary text-white ",
   };
 
-  const baseClasses = "w-full flex items-center justify-center py-2 rounded-lg font-bold transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed";
-  const variantClasses = variants[variant] || variants.default;
+  const baseClasses = "w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed";
+  const variantClasses = variants[variant] || variants.primary;
 
   return (
     <button
@@ -25,7 +24,7 @@ const Button = ({
       disabled={disabled}
     >
       {text}
-      <ArrowRight className="size-5 ml-2" />
+      <ArrowRight className="w-5 h-5" />
     </button>
   );
 };

@@ -1,13 +1,29 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { topicsData } from '../data/topicData';
 import SubtopicCard from '../components/SubtopicCard';
-import ArrowLeft from '../icons/ArrowLeft';
-import ChevronRight from '../icons/ChevronRight';
-import Checklist from '../icons/Checklist';
+import { HugeiconsIcon } from '@hugeicons/react'
+import {ArrowLeft02Icon,ArrowRight01Icon} from '@hugeicons/core-free-icons';
 
+
+import Checklist from '../icons/Checklist';
+import {useState} from 'react';
 function SubtopicPage() {
+
+
+
+ const [selectedSubtopic , setSelectedSubtopic] = useState(null);
+ const [isDialogOpen , setIsDialogOpen] = useState(false);
+
   const navigate = useNavigate();
   const { topicSlug } = useParams();
+
+const handleSelectedSubtopic = (subtopic)=>{
+
+  setSelectedSubtopic(subtopic);
+  console.log("Selected Subtopic:", subtopic);
+  setIsDialogOpen(true);
+}
+
 
   const handleBack = () => {
     navigate('/#topics-section');
@@ -24,7 +40,7 @@ function SubtopicPage() {
           onClick={handleBack}
           className="inline-flex text-sm items-center text-gray-600 hover:text-green-600 transition-colors duration-200 mr-4"
         >
-          <ArrowLeft className="w-4 h-4" /> back
+         <HugeiconsIcon icon={ArrowLeft02Icon} />back
         </button>
 
         <h2 className="mt-3.5 text-2xl font-semibold text-gray-700">Practice</h2>
@@ -47,7 +63,7 @@ function SubtopicPage() {
           </div>
 
           <div className="w-8 h-8 rounded-full bg-lime-50 flex items-center justify-center">
-            <ChevronRight className="w-4 h-4 text-lime-500" />
+           <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 text-lime-500" />
           </div>
         </div>
       </div>
@@ -65,6 +81,8 @@ function SubtopicPage() {
               key={subtopic.slug}
               subtopic={subtopic}
               topicSlug={topicSlug}
+              onClick={() => handleSelectedSubtopic(subtopic)}
+              
             />
           ))}
         </div>

@@ -1,13 +1,15 @@
-import ChevronRight from '../icons/ChevronRight';
+import { HugeiconsIcon } from '@hugeicons/react'
+import {ArrowRight01Icon} from '@hugeicons/core-free-icons';
 
-const SubtopicCard = ({ subtopic }) => {
+const SubtopicCard = ({ subtopic,onClick }) => {
   const { name, slug, description, icon, questionCount, questions } = subtopic;
   const totalQuestions = typeof questionCount === 'number' ? questionCount : (questions ? (questions.easy || 0) + (questions.medium || 0) + (questions.hard || 0) : 10);
 
   return (
-    <div>
+    <div >
       <div
         key={slug}
+        onClick={onClick}
         className="group relative bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer overflow-hidden hover:bg-gray-50 transition-shadow"
       >
         <div className="flex items-center gap-4">
@@ -28,7 +30,7 @@ const SubtopicCard = ({ subtopic }) => {
           </div>
 
           <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-lime-50 transition-colors">
-            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-lime-600 transition-colors" />
+         <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 text-gray-400 group-hover:text-lime-600 transition-colors" />
           </div>
         </div>
 
