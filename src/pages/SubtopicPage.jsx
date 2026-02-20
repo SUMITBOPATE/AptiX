@@ -3,7 +3,7 @@ import { topicsData } from '../data/topicData';
 import SubtopicCard from '../components/SubtopicCard';
 import { HugeiconsIcon } from '@hugeicons/react'
 import {ArrowLeft02Icon,ArrowRight01Icon} from '@hugeicons/core-free-icons';
-
+import Dialog from '../components/Dailog';
 
 import Checklist from '../icons/Checklist';
 import {useState} from 'react';
@@ -23,8 +23,17 @@ const handleSelectedSubtopic = (subtopic)=>{
   console.log("Selected Subtopic:", subtopic);
   setIsDialogOpen(true);
 }
+ const handleCloseDialog = () => { 
+ setIsDialogOpen(false);
+ 
+ }
+ const handleStartQuiz=( config)=>{
+  // Logic to start the quiz based on selectedSubtopic
+  setIsDialogOpen(false);
+  setSelectedSubtopic(config.subtopic); 
+  navigate(`/practice/${topicSlug}/quiz`, { state: config })
 
-
+ }
   const handleBack = () => {
     navigate('/#topics-section');
   };
@@ -76,17 +85,28 @@ const handleSelectedSubtopic = (subtopic)=>{
 
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-3.5 gap-6">
-          {subtopicsArray.map((subtopic) => (
+      {subtopicsArray.map((subtopic) => (
             <SubtopicCard
               key={subtopic.slug}
               subtopic={subtopic}
               topicSlug={topicSlug}
               onClick={() => handleSelectedSubtopic(subtopic)}
-              
+            
             />
+
           ))}
+
         </div>
       </div>
+{
+  isDialogOpen && selectedSubtopic && (  <Dialog
+    selectedSubtopic={selectedSubtopic}
+    onClose={handleCloseDialog}
+    onStart={handleStartQuiz}
+  />
+)}
+
+
     </div>
   );
 }

@@ -1,8 +1,21 @@
 import { useState } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react'
 
-function Dialog() {
-  const [questionCount, setQuestionCount] = useState(10);
+import { Cancel01Icon } from '@hugeicons/core-free-icons';
+
+function Dialog({onClose,selectedSubtopic,onStart}) {
+  const [questionCount, setQuestionCount] = useState();
   const [selectedDifficulty, setSelectedDifficulty] = useState('ai');
+  const config = {
+  subtopic: selectedSubtopic,
+  selectedDifficulty: selectedDifficulty,
+  count: questionCount,
+  // mode: 'practice'
+};
+
+
+
+
 
   const difficulties = [
     { id: 'easy', label: 'Easy', color: 'bg-green-100 text-green-700 border-green-300' },
@@ -15,9 +28,17 @@ function Dialog() {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-xl">
         {/* Header */}
-        <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Practice Settings</h2>
-          <p className="text-sm text-gray-500 mt-1">Customize your practice session</p>
+        <div className="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">Practice Settings</h2>
+            <p className="text-sm text-gray-500 mt-1">Customize your practice session</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-lime-100 rounded-full transition-all group"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5 text-gray-500 group-hover:text-lime-600 group-hover:drop-shadow-[0_0_3px_rgba(132,204,22,0.6)] transition-all" />
+          </button>
         </div>
 
         {/* Content */}
@@ -81,10 +102,10 @@ function Dialog() {
 
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex gap-3">
-          <button className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
             Cancel
           </button>
-          <button className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors">
+          <button onClick={()=>onStart(config)} className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors">
             Start Practice
           </button>
         </div>
