@@ -1,96 +1,200 @@
 import { useState } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon, Leaf01Icon, FlashIcon, Fire02Icon, StarsIcon } from '@hugeicons/core-free-icons';
 
-function Dialog() {
+const DIFFICULTIES = [
+  { id: 'easy',   label: 'Easy',        icon: Leaf01Icon, desc: 'Foundational concepts' },
+  { id: 'medium', label: 'Medium',      icon: FlashIcon, desc: 'Word problems & logic' },
+  { id: 'hard',   label: 'Hard',        icon: Fire02Icon, desc: 'Advanced & complex' },
+  { id: 'ai',     label: 'AI Adaptive', icon: StarsIcon, desc: 'Smart difficulty tuning', recommended: true },
+];
+
+const SLIDER_STEPS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+
+function ClockIcon() {
+  return (
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+function TargetIcon() {
+  return (
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" />
+      <line x1="12" y1="3" x2="12" y2="7" /><line x1="12" y1="17" x2="12" y2="21" />
+      <line x1="3" y1="12" x2="7" y2="12" /><line x1="17" y1="12" x2="21" y2="12" />
+    </svg>
+  );
+}
+
+function getEstimatedTime(subtopic, difficulty, count) {
+  if (!subtopic?.estimatedTime || !subtopic.estimatedTime[difficulty]) return `~${count} min`;
+  return subtopic.estimatedTime[difficulty];
+}
+
+export default function Dialog({ onClose, selectedSubtopic, onStart }) {
   const [questionCount, setQuestionCount] = useState(10);
-  const [selectedDifficulty, setSelectedDifficulty] = useState('ai');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
 
-  const difficulties = [
-    { id: 'easy', label: 'Easy', color: 'bg-green-100 text-green-700 border-green-300' },
-    { id: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-    { id: 'hard', label: 'Hard', color: 'bg-red-100 text-red-700 border-red-300' },
-    { id: 'ai', label: 'AI Adaptive', color: 'bg-purple-100 text-purple-700 border-purple-300', recommended: true },
-  ];
+  const config = { subtopic: selectedSubtopic, selectedDifficulty, count: questionCount };
+  const sliderPercent = ((questionCount - 5) / (50 - 5)) * 100;
+  const estimatedTime = getEstimatedTime(selectedSubtopic, selectedDifficulty, questionCount);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-xl">
+    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-[440px] shadow-card overflow-hidden flex flex-col border border-border">
+
+        {/* Dashed lime accent rail — gradient, kept as CSS class */}
+        <div   />
+
         {/* Header */}
-        <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Practice Settings</h2>
-          <p className="text-sm text-gray-500 mt-1">Customize your practice session</p>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Question Count Slider */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-gray-700">Number of Questions</label>
-              <span className="text-sm font-semibold text-gray-900">{questionCount} questions</span>
-            </div>
-            <input
-              type="range"
-              min="5"
-              max="50"
-              step="5"
-              value={questionCount}
-              onChange={(e) => setQuestionCount(Number(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-            />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>5</span>
-              <span>50</span>
-            </div>
-          </div>
-
-          {/* Timer */}
-          <div className="flex items-center justify-center bg-gray-50 rounded-xl py-3 px-4">
-            <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-sm text-gray-600">
-              Estimated time: <span className="font-medium text-gray-800">{questionCount} min</span>
+        <div className="flex items-start bg-gray-50 gap-2.5 px-4 pt-4 pb-3 border-b border-dashed border-border relative">
+          {/* Subtopic badge */}
+          <div className="flex items-center gap-1.5 bg-surface border border-dashed border-border rounded-lg px-2 py-2 shrink-0">
+            {selectedSubtopic?.icon && (
+              <span className="text-[1.1rem] leading-none">{selectedSubtopic.icon}</span>
+            )}
+            <span className="text-[0.8125rem] font-semibold text-text-strong whitespace-nowrap">
+              {selectedSubtopic?.name || 'Practice'}
             </span>
           </div>
 
-          {/* Difficulty Options */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-3 block">Difficulty Level</label>
-            <div className="grid grid-cols-2 gap-3">
-              {difficulties.map((diff) => (
-                <button
-                  key={diff.id}
-                  onClick={() => setSelectedDifficulty(diff.id)}
-                  className={`relative px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                    selectedDifficulty === diff.id
-                      ? diff.color.replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', 'border-')
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                  } ${selectedDifficulty === diff.id ? 'border-current' : ''}`}
-                >
-                  {diff.recommended && (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full">
-                      Recommended
-                    </span>
-                  )}
-                  {diff.label}
-                </button>
-              ))}
+          {/* Title */}
+          <div className="flex-1">
+            <h2 className="text-base font-bold text-text-strong mt-0.5 mb-0.5 leading-snug">
+              Practice Settings
+            </h2>
+            <p className="text-xs text-text-muted m-0">Customize your drill session</p>
+          </div>
+
+          {/* Close */}
+          <button
+            onClick={onClose}
+            className="bg-transparent border border-border rounded-lg w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-surface hover:border-[#c3c3c3] transition-all shrink-0 mt-0.5"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-5 py-4 flex flex-col gap-3.5">
+
+          {/* Question count slider */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[0.8125rem] font-semibold text-text tracking-[0.01em]">Questions</span>
+              <span
+                className="text-sm font-bold text-primary-strong border border-dashed border-primary rounded-md px-2 py-0.5 min-w-8 text-center"
+                style={{ background: 'oklch(95% 0.06 130)' }}
+              >
+                {questionCount}
+              </span>
+            </div>
+
+            {/* Slider with custom track */}
+            <div className="relative pt-2 pb-1">
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-[5px] bg-surface-2 rounded-full pointer-events-none -mt-[3px]">
+                <div className="h-full bg-primary rounded-full transition-[width_0.1s]" style={{ width: `${sliderPercent}%` }} />
+              </div>
+              {/* dialog-slider keeps only the thumb pseudo-element CSS */}
+              <input
+                type="range"
+                min="5" max="50" step="5"
+                value={questionCount}
+                onChange={(e) => setQuestionCount(Number(e.target.value))}
+                className="dialog-slider relative w-full h-5 appearance-none bg-transparent cursor-pointer z-[2]"
+              />
+              {/* Tick marks */}
+              <div className="flex justify-between px-0.5 mt-1 pointer-events-none">
+                {SLIDER_STEPS.map((step) => (
+                  <span
+                    key={step}
+                    className={`w-1 h-1 rounded-full transition-colors ${step <= questionCount ? 'bg-primary' : 'bg-border'}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between text-[0.6875rem] text-text-muted">
+              <span>5</span><span>50</span>
+            </div>
+          </div>
+
+          {/* Estimated time highlight */}
+          <div
+            className="flex items-center gap-3 border-[1.5px] border-dashed border-primary rounded-xl px-3.5 py-2.5"
+            style={{ background: 'oklch(97% 0.04 130)' }}
+          >
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white shrink-0">
+              <ClockIcon />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.6875rem] text-text-muted font-medium uppercase tracking-[0.04em]">Estimated Time</span>
+              <span className="text-[0.9375rem] font-bold text-primary-strong">{estimatedTime}</span>
+            </div>
+            <div className="w-px h-7 bg-primary opacity-25 mx-auto" />
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.6875rem] text-text-muted font-medium uppercase tracking-[0.04em]">Questions</span>
+              <span className="text-[0.9375rem] font-bold text-primary-strong">{questionCount} Q</span>
+            </div>
+          </div>
+
+          {/* Difficulty */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[0.8125rem] font-semibold text-text tracking-[0.01em]">Difficulty Level</span>
+              <div className="text-text-muted"><TargetIcon /></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {DIFFICULTIES.map((diff) => {
+                const active = selectedDifficulty === diff.id;
+                return (
+                  <button
+                    key={diff.id}
+                    onClick={() => setSelectedDifficulty(diff.id)}
+                    className={`relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left transition-all active:scale-[0.98] ${
+                      active
+                        ? 'border-primary'
+                        : 'border-border bg-surface hover:border-[#c3c3c3] hover:bg-surface-2'
+                    }`}
+                    style={active ? { background: 'oklch(96% 0.06 130)' } : {}}
+                  >
+                    {diff.recommended && (
+                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
+                        Recommended
+                      </span>
+                    )}
+                    <HugeiconsIcon icon={diff.icon} className="w-3 h-3" />
+                    <span className="text-[0.8125rem] font-semibold text-text-strong leading-snug">{diff.label}</span>
+                    <span className="text-[0.6875rem] text-text-muted leading-snug">{diff.desc}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex gap-3">
-          <button className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
-            Cancel
+        <div className="flex gap-2.5 px-5 py-3 border-t border-dashed border-border bg-surface">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-white text-text border-[1.5px] border-border hover:bg-surface-2"
+          >
+            Exit
           </button>
-          <button className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors">
-            Start Practice
+          <button
+            onClick={() => onStart(config)}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-primary text-white border-none hover:bg-primary-soft"
+          >
+            Start Practice →
           </button>
         </div>
+
       </div>
     </div>
   );
 }
-
-export default Dialog;

@@ -5,7 +5,7 @@ import Layout from './layouts/Layout';
 import Hero from './pages/Hero';
 import Topics from './pages/Topics';
 import SubtopicPage from './pages/SubtopicPage';
-import PracticePage from './pages/PracticePage';
+import QuizPage from './pages/QuizPage';
 import { HugeiconsIcon } from '@hugeicons/react';
 import './App.css';
 
@@ -23,8 +23,9 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<><Hero /><Topics /></>} />
           <Route path="practice/:topicSlug" element={<SubtopicPage />} />
-          <Route path="practice/:topicSlug/:subtopicSlug" element={<PracticePage />} />
         </Route>
+        {/* Quiz runs fullscreen with its own header */}
+        <Route path="practice/:topicSlug/quiz" element={<QuizPage />} />
       </Routes>
     </div>
   );

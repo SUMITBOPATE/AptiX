@@ -117,7 +117,7 @@
   /* Colors */
   --color-primary: oklch(84.1% 0.238 128.85);
   --color-primary-strong: rgb(24, 121, 89);
-  --color-primary-soft:oklch(76.8% 0.233 130.85);
+  --color-primary-soft: oklch(76.8% 0.233 130.85);
   --color-text: rgb(115, 115, 115);
   --color-text-strong: rgb(57, 57, 57);
   --color-text-muted: rgb(163, 163, 163);
@@ -130,11 +130,7 @@
   --color-warning: rgb(229, 183, 59);
   --color-danger: rgb(204, 97, 84);
   --color-success: rgb(72, 164, 136);
-   
 
-
-
---
   /* Shadows */
   --shadow-soft: 0 8px 24px oklch(35% 0.02 286.067 / 0.12);
   --shadow-card: 0 12px 32px oklch(35% 0.02 286.067 / 0.16);
@@ -164,6 +160,7 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
 /* LEFT SIDE SLANTED RAIL */
 .slanted-rail-left {
   background-image: repeating-linear-gradient(
@@ -184,4 +181,55 @@ a {
     transparent 1px,
     transparent 7px
   );
+}
+
+/* =============================================
+   MINIMAL RESIDUAL CSS
+   (only rules impossible to express in Tailwind)
+   ============================================= */
+
+/* Dashed lime accent rail — repeating gradient */
+.dialog-accent-rail {
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-primary) 0px,
+    var(--color-primary) 8px,
+    transparent 8px,
+    transparent 14px
+  );
+}
+
+/* Slider thumb — pseudo-element styles not expressible in Tailwind */
+.dialog-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid var(--color-primary);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.dialog-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 5px oklch(84.1% 0.238 128.85 / 0.18);
+}
+.dialog-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid var(--color-primary);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+.dialog-slider::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 5px;
+}
+.dialog-slider::-moz-range-track {
+  background: transparent;
+  height: 5px;
 }

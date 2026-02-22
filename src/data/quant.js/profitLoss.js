@@ -13,8 +13,8 @@ export const profitLossQuestions = [
     id: "pl_2",
     category: "quant",
     subcategory: "profit-loss",
-    level: "easy",
-    question: "CP = 200, gain = 10%. Find SP.",
+    level: "hard",
+    question: "CP = 200, gain = 10%. Find SP its value.",
     options: ["210", "220", "230", "240"],
     correctAnswer: "220",
     explanation: "10% of 200 = 20 → SP = 220"

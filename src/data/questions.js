@@ -9,37 +9,14 @@ import { timeWorkQuestions } from './quant.js/timeWork.js';
 const questionsBySlug = {
   'percentages': percentageQuestions,
   'profit-loss': profitLossQuestions,
-  'ratio-proportion': ratioProportionQuestions,
+  'ratio-proportions': ratioProportionQuestions,
   'simple-interest': simpleInterestQuestions,
   'time-work': timeWorkQuestions,
 };
 
-// Get all questions for a subtopic
-export function getQuestionsBySlug(slug) {
+// Export function to get questions by subcategory slug
+export const getQuestionsBySlug = (slug) => {
   return questionsBySlug[slug] || [];
-}
+};
 
-// Get question counts by difficulty
-export function getQuestionCounts(slug) {
-  const questions = getQuestionsBySlug(slug);
-  const counts = { easy: 0, medium: 0, hard: 0 };
-
-  questions.forEach(q => {
-    if (q.level === 'easy') counts.easy++;
-    else if (q.level === 'medium') counts.medium++;
-    else if (q.level === 'hard') counts.hard++;
-  });
-
-  return counts;
-}
-
-// Get questions filtered by difficulty
-export function getQuestionsByDifficulty(slug, difficulty) {
-  const questions = getQuestionsBySlug(slug);
-
-  if (difficulty === 'Adaptive AI Mode') {
-    return questions;
-  }
-
-  return questions.filter(q => q.level === difficulty);
-}
+export default questionsBySlug;
