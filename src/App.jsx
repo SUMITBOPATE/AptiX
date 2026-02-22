@@ -23,8 +23,9 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<><Hero /><Topics /></>} />
           <Route path="practice/:topicSlug" element={<SubtopicPage />} />
-          <Route path="practice/:topicSlug/quiz" element={<QuizPage />} />
         </Route>
+        {/* Quiz runs fullscreen with its own header */}
+        <Route path="practice/:topicSlug/quiz" element={<QuizPage />} />
       </Routes>
     </div>
   );
