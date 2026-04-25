@@ -1,9 +1,30 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import {ArrowRight01Icon} from '@hugeicons/core-free-icons';
+import { PercentCircleIcon, MoneyBag02Icon, BankIcon, Time02Icon, BalanceScaleIcon } from '@hugeicons/core-free-icons';
 
-const SubtopicCard = ({ subtopic,onClick }) => {
-  const { name, slug, description, icon, questionCount, questions } = subtopic;
-  const totalQuestions = typeof questionCount === 'number' ? questionCount : (questions ? (questions.easy || 0) + (questions.medium || 0) + (questions.hard || 0) : 10);
+const iconMap = {
+  'percentages': PercentCircleIcon,
+  'profit-loss': MoneyBag02Icon,
+  'simple-interest': BankIcon,
+  'time-work': Time02Icon,
+  'ratios-proportions': BalanceScaleIcon,
+  'series-completion': null,
+  'coding-decoding': null,
+  'blood-relations': null,
+  'direction-sense': null,
+  'logical-puzzles': null,
+  'synonyms-antonyms': null,
+  'sentence-correction': null,
+  'reading-comprehension': null,
+  'fill-in-blanks': null,
+  'para-jumbles': null,
+  'full-mock-tests': null,
+};
+
+const SubtopicCard = ({ subtopic, onClick, questionCount = 0 }) => {
+  const { name, slug, description } = subtopic;
+  const totalQuestions = questionCount;
+  const IconComponent = iconMap[slug];
 
   return (
     <div >
@@ -13,8 +34,12 @@ const SubtopicCard = ({ subtopic,onClick }) => {
         className="group relative bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer overflow-hidden hover:bg-gray-50 transition-shadow"
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-4xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform">
-            {icon}
+          <div className="w-12 h-12 bg-gradient-to-br from-lime-50 to-lime-100 rounded-4xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform">
+            {IconComponent ? (
+              <HugeiconsIcon icon={IconComponent} className="w-6 h-6 text-lime-400" />
+            ) : (
+              subtopic.icon
+            )}
           </div>
 
           <div className="flex-1 min-w-0 relative">

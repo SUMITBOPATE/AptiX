@@ -1,16 +1,17 @@
 import React from 'react'
 import TopicCard from '../components/TopicCard'
+import MockTest from '../components/MockTest'
 import { topicsData } from '../data/topicData';
 
 function Topics() {
   return (
   <>
-   
-    <div id='topics-section' className="min-h-screen bg--color-bg p-16 text-gray-800">
-      <div  className="max-w-7xl mx-auto py-2 ">
-        <h1 className='text-4xl mb-6 text-gray-700'>
-          The Best Platform to <span className='font-semibold text-lime-500'>Crack Aptitude</span>
-        </h1>
+
+    <div id='topics-section' className="min-h-screen bg-color-bg sm:p-2 md:p-12  text-gray-800">
+      <div  className="max-w-screen-2xl mx-auto py-2 ">
+        {/* <h1 className='text-4xl mb-6 text-gray-700'>
+          The Best Platform to <span className='font-semibold text-lime-700'>Crack Aptitude</span>
+        </h1> */}
         <h2 className="text-3xl font-bold leading-1.2 tracking-tight text-gray-900">
           Topics
         </h2>
@@ -20,22 +21,20 @@ function Topics() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {topicsData.map((topic, index) => {
+        {topicsData.map((topic) => {
           return (
             <TopicCard
               key={topic.slug}
-              // This is the best way to pass the data: pass the entire 'topic' object
               topic={topic}
             />
           );
         })}
 
-      
-
-
       </div>
+
+      <MockTest />
     </div>
-    </>
+  </>
   );
 }
 

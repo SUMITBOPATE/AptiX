@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { Outlet ,useLocation} from 'react-router-dom';
 import { useEffect } from 'react';
-export default function Layout({ children }) {
+export default function Layout() {
 
   const { pathname } = useLocation();
 
@@ -29,14 +29,18 @@ export default function Layout({ children }) {
 
 
 
-  return (
-   
 
-   <div className="min-h-screen flex flex-col">
+
+
+  return (
+
+
+   <div className="min-h-screen max-w-screen-2xl flex flex-col mx-auto">
       <Navbar />
-      <main className="flex-1  border-y border-dashed border-gray-200 mx-10  md:px-8 relative z-10">
+      <main className="flex-1 pt-16 px-6 md:px-12 relative z-10">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 }

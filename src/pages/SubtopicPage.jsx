@@ -6,34 +6,45 @@ import {ArrowLeft02Icon,ArrowRight01Icon} from '@hugeicons/core-free-icons';
 import Dialog from '../components/Dailog';
 
 import Checklist from '../icons/Checklist';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
+import { getAllQuestionCounts } from '../lib/supabase';
+
 function SubtopicPage() {
 
 
 
  const [selectedSubtopic , setSelectedSubtopic] = useState(null);
  const [isDialogOpen , setIsDialogOpen] = useState(false);
+ const [questionCounts, setQuestionCounts] = useState({});
 
   const navigate = useNavigate();
   const { topicSlug } = useParams();
 
+  // Fetch question counts for each subtopic
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const counts = await getAllQuestionCounts();
+      setQuestionCounts(counts);
+    };
+    fetchCounts();
+  }, [topicSlug]);
+
 const handleSelectedSubtopic = (subtopic)=>{
 
   setSelectedSubtopic(subtopic);
-  console.log("Selected Subtopic:", subtopic);
   setIsDialogOpen(true);
 }
- const handleCloseDialog = () => { 
+ const handleCloseDialog = () => {
  setIsDialogOpen(false);
- 
+
  }
  const handleStartQuiz=( config)=>{
   // Logic to start the quiz based on selectedSubtopic
   setIsDialogOpen(false);
-  setSelectedSubtopic(config.subtopic); 
+  setSelectedSubtopic(config.subtopic);
   navigate(`/practice/${topicSlug}/quiz`, { state: config })
 
- }
+}
   const handleBack = () => {
     navigate('/#topics-section');
   };
@@ -90,8 +101,9 @@ const handleSelectedSubtopic = (subtopic)=>{
               key={subtopic.slug}
               subtopic={subtopic}
               topicSlug={topicSlug}
+              questionCount={questionCounts[subtopic.slug] || 0}
               onClick={() => handleSelectedSubtopic(subtopic)}
-            
+
             />
 
           ))}

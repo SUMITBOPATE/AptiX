@@ -13,26 +13,26 @@ export default function TopicCard({ topic }) {
       <h2 className="text-2xl font-semibold text-text-strong mb-3 leading-tight">
         {title}
       </h2>
-      
+
       {/* Description */}
       <p className="text-base text-text mb-6 leading-relaxed">
         {description}
       </p>
-  
+
       {/* Stats */}
       <div className="flex items-center gap-6 mb-8">
         <div className="flex items-center gap-2">
-          <HugeiconsIcon 
-            icon={Book04Icon} 
-            className="w-5 h-5 text-primary" 
+          <HugeiconsIcon
+            icon={Book04Icon}
+            className="w-5 h-5 text-primary"
           />
           <span className="text-sm font-medium text-text-strong">{details}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <HugeiconsIcon 
-            icon={HelpCircleIcon} 
-            className="w-5 h-5 text-primary" 
+          <HugeiconsIcon
+            icon={HelpCircleIcon}
+            className="w-5 h-5 text-primary"
           />
           <span className="text-sm font-medium text-text-strong">{numberOfQuestions}</span>
         </div>

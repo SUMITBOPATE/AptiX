@@ -294,35 +294,35 @@ export const topicsData = [
       }
     }
   },
-  {
-    title: "Mock Tests",
-    slug: "mock-tests",
-    details: "Full-length practice tests",
-    numberOfQuestions: "1000+ Questions",
-    description: "Complete exam simulation with all topics combined",
-    isFeatured: false,
-    detailsClass: 'text-purple-600',
-    icon: "🎯",
-    subcategories: {
-      "full-mock-tests": {
-        name: "Full Mock Tests",
-        slug: "full-mock-tests",
-        icon: "📋",
-        description: "Complete aptitude tests covering all subjects",
-        estimatedTime: {
-          easy: "60 min",
-          medium: "90 min",
-          hard: "120 min"
-        },
-        questionCount: {
-          easy: 50,
-          medium: 75,
-          hard: 100
-        },
-        topics: ["Mixed aptitude", "Time-bound", "Real exam pattern", "Performance analysis"]
-      }
-    }
-  }
+  // {
+  //   title: "Mock Tests",
+  //   slug: "mock-tests",
+  //   details: "Full-length practice tests",
+  //   numberOfQuestions: "1000+ Questions",
+  //   description: "Complete exam simulation with all topics combined",
+  //   isFeatured: false,
+  //   detailsClass: 'text-purple-600',
+  //   icon: "🎯",
+  //   subcategories: {
+  //     "full-mock-tests": {
+  //       name: "Full Mock Tests",
+  //       slug: "full-mock-tests",
+  //       icon: "📋",
+  //       description: "Complete aptitude tests covering all subjects",
+  //       estimatedTime: {
+  //         easy: "60 min",
+  //         medium: "90 min",
+  //         hard: "120 min"
+  //       },
+  //       questionCount: {
+  //         easy: 50,
+  //         medium: 75,
+  //         hard: 100
+  //       },
+  //       topics: ["Mixed aptitude", "Time-bound", "Real exam pattern", "Performance analysis"]
+  //     }
+  //   }
+  // }
 ];
 
 

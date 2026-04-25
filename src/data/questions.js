@@ -9,12 +9,12 @@ import { timeWorkQuestions } from './quant.js/timeWork.js';
 const questionsBySlug = {
   'percentages': percentageQuestions,
   'profit-loss': profitLossQuestions,
-  'ratio-proportions': ratioProportionQuestions,
+  'ratios-proportions': ratioProportionQuestions,
   'simple-interest': simpleInterestQuestions,
   'time-work': timeWorkQuestions,
 };
 
-// Export function to get questions by subcategory slug
+
 export const getQuestionsBySlug = (slug) => {
   return questionsBySlug[slug] || [];
 };
