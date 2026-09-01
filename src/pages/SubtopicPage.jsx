@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { topicsData } from '../data/topicData';
-import SubtopicCard from '../components/SubtopicCard';
+import { topicsData } from '../../data/topicData';
+import SubtopicCard from '../components/topics/SubtopicCard';
 import { HugeiconsIcon } from '@hugeicons/react'
 import {ArrowLeft02Icon,ArrowRight01Icon} from '@hugeicons/core-free-icons';
-import Dialog from '../components/Dailog';
+import Dialog from '../components/quiz/Dailog';
 
 import Checklist from '../icons/Checklist';
 import {useState, useEffect} from 'react';
@@ -65,15 +65,15 @@ const handleSelectedSubtopic = (subtopic)=>{
 
         <h2 className="mt-3.5 text-2xl font-semibold text-gray-700">Practice</h2>
 
-        <div className="bg-white mt-3.5 rounded-xl shadow-sm border font-family:[Geist] border-gray-200 p-4 flex items-center hover:bg-gray-50 justify-between cursor-pointer relative overflow-hidden">
-          <div className="w-12 h-12 bg-gradient-to-br from-lime-50 to-lime-100 rounded-4xl flex items-center justify-center flex-shrink-0">
+        <div className="bg-white dark:bg-[#1B2014] mt-3.5 rounded-xl shadow-sm border font-family:[Geist] border-gray-200 dark:border-[#343B29] p-4 flex items-center hover:bg-gray-50 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 justify-between cursor-pointer relative overflow-hidden transition-colors duration-200">
+          <div className="w-12 h-12 bg-gradient-to-br from-lime-50 to-lime-100 dark:from-lime-400/10 dark:to-lime-400/10 dark:border dark:border-lime-400/10 rounded-4xl flex items-center justify-center flex-shrink-0">
             <Checklist className="w-6 h-6 text-lime-500" />
           </div>
 
           <div className="flex-1 min-w-0 ml-4 relative">
             <div className="text-base text-gray-900 font-medium pr-16">
               Mock test
-              <span className="relative ml-2.5 px-1.5 py-0.5 rounded-4xl bg-lime-200 text-xs font-medium text-gray-600">
+              <span className="relative ml-2.5 px-1.5 py-0.5 rounded-4xl bg-lime-200 dark:bg-lime-400/15 dark:text-lime-300 dark:border dark:border-lime-400/10 text-xs font-medium text-gray-600">
                 0 Attempted
               </span>
               <p className="text-sm text-gray-600 font-light mt-0.5">

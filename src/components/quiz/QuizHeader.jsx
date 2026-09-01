@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import ArrowLeft from '../icons/ArrowLeft';
+import ArrowLeft from '../../icons/ArrowLeft';
 
 function BookmarkIcon() {
   return (
@@ -28,7 +28,7 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
   };
 
   return (
-    <header className="flex items-center justify-between px-4 sm:px-10 h-14 border-b border-dashed border-gray-200 bg-white sticky top-0 z-20">
+    <header className="theme-navbar flex items-center justify-between px-4 sm:px-10 h-14 border-b border-dashed border-gray-200 dark:border-[#343B29] bg-white sticky top-0 z-20">
 
       {/* Left: Topic badge */}
       <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
 
         {/* Topic & Difficulty badge */}
         {(subtopicName || difficulty) && (
-          <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-text-muted bg-gray-100 border border-dashed border-gray-200 rounded-lg px-2.5 py-1.5">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-text-muted bg-gray-100 dark:bg-surface-2 border border-dashed border-gray-200 dark:border-border rounded-lg px-2.5 py-1.5">
             <span>{subtopicName}</span>
             <span className="text-gray-300">•</span>
             <span className="capitalize">{difficulty}</span>

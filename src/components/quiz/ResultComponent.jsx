@@ -14,9 +14,9 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
   const progress = (correct / total) * circumference;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="theme-page min-h-screen bg-white flex flex-col">
       {/* Header - Simple white with border */}
-      <div className="border-b border-gray-200 px-6 py-6 bg-white">
+      <div className="border-b border-gray-200 dark:border-[#343B29] px-6 py-6 bg-white">
         <h1 className="text-xl font-semibold text-gray-800 text-center">Quiz Complete</h1>
         <p className="text-sm text-gray-500 text-center mt-1">Here's your performance summary</p>
       </div>
@@ -121,7 +121,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                 <div
                   key={index}
                   onClick={() => onReview(index)}
-                  className="p-3 rounded-lg border border-gray-200 bg-white cursor-pointer transition hover:border-lime-300 hover:shadow-sm"
+                  className="p-3 rounded-lg border border-gray-200 dark:border-[#343B29] bg-white cursor-pointer transition-colors duration-200 hover:border-lime-300 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 hover:shadow-sm"
                 >
                   <div className="flex items-start gap-3">
                     {/* Status Icon - Simple circle */}

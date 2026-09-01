@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --radius: 0.45rem;
 }
@@ -14,7 +16,7 @@
   left: 3rem;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 1.8px;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0px,
@@ -29,7 +31,7 @@
   right: 3rem;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 1.8px;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0px,
@@ -45,7 +47,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 1.8px;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0px,
@@ -60,7 +62,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 1.8px;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0px,
@@ -154,6 +156,77 @@ body {
   color: var(--color-text);
   background: var(--color-bg);
   font-family: var(--font-sans);
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+/* Theme tokens keep the existing component structure intact. */
+.dark {
+  color-scheme: dark;
+  --color-text: #a8ad9d;
+  --color-text-strong: #f5f5ee;
+  --color-text-muted: #7d8374;
+  --color-bg: #14170f;
+  --color-surface: #1b2014;
+  --color-surface-2: #22291a;
+  --color-border: #343b29;
+  --color-primary-strong: #a3e635;
+  --color-danger: #f87171;
+  --color-success: #86efac;
+  --shadow-soft: 0 8px 24px rgb(0 0 0 / 0.22);
+  --shadow-card: 0 12px 32px rgb(0 0 0 / 0.30);
+}
+
+/* Legacy neutral utilities are used throughout the existing UI. These mappings
+   make every current page theme-aware while new work can use dark: classes. */
+.dark .theme-page { background-color: #14170f; }
+.dark .theme-navbar { background-color: #14170f; }
+.dark .bg-white { background-color: #1b2014; }
+.dark .bg-gray-50 { background-color: #1b2014; }
+.dark .bg-gray-100 { background-color: #22291a; }
+.dark .bg-gray-200 { background-color: rgb(255 255 255 / 0.07); }
+.dark .bg-gray-300 { background-color: rgb(255 255 255 / 0.12); }
+.dark .text-black, .dark .text-gray-900, .dark .text-gray-800, .dark .text-gray-700 { color: #f5f5ee; }
+.dark .text-gray-600, .dark .text-gray-500, .dark .text-gray-400, .dark .text-gray-300 { color: #a8ad9d; }
+.dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 { border-color: #343b29; }
+.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover, .dark .hover\:bg-gray-200:hover { background-color: #22291a; }
+.dark .hover\:border-gray-200:hover { border-color: #47523a; }
+.dark .bg-lime-50 { background-color: rgb(77 124 15 / 0.18); }
+.dark .bg-lime-100 { background-color: rgb(101 163 13 / 0.22); }
+.dark .bg-lime-200 { background-color: rgb(132 204 22 / 0.27); }
+.dark .border-lime-200 { border-color: rgb(132 204 22 / 0.42); }
+.dark .text-lime-600, .dark .text-lime-700 { color: #bef264; }
+.dark .bg-lime-400, .dark .bg-lime-500 { color: #17210a; }
+.dark .bg-blue-50 { background-color: rgb(59 130 246 / 0.14); }
+.dark .bg-blue-100 { background-color: rgb(59 130 246 / 0.22); }
+.dark .border-blue-100 { border-color: rgb(96 165 250 / 0.35); }
+.dark .bg-red-50, .dark .bg-\[\#fff5f5\], .dark .bg-\[\#fef2f2\] { background-color: rgb(127 29 29 / 0.24); }
+.dark .border-red-100, .dark .border-red-200, .dark .border-\[\#fca5a5\] { border-color: rgb(248 113 113 / 0.55); }
+.dark .text-red-600, .dark .text-\[\#dc2626\] { color: #fca5a5; }
+.dark .bg-green-50, .dark .bg-\[\#f0fdf4\] { background-color: rgb(20 83 45 / 0.30); }
+.dark .border-green-200, .dark .border-\[\#86efac\] { border-color: rgb(74 222 128 / 0.55); }
+.dark .text-green-600 { color: #86efac; }
+.dark input, .dark select, .dark textarea { color: #f5f5ee; background-color: #1b2014; border-color: #343b29; }
+.dark input:focus, .dark select:focus, .dark textarea:focus { border-color: rgb(163 230 53 / 0.4); }
+.dark option { background: #1b2014; color: #f5f5ee; }
+.dark .slanted-rail-left, .dark .slanted-rail-right { opacity: 0.22; }
+
+/* Comfortable, unobtrusive scrolling for long study sessions. */
+* { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
+.dark { scrollbar-color: #4a5340 #14170f; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+.dark ::-webkit-scrollbar-track { background: #14170f; }
+::-webkit-scrollbar-thumb { background: #94a3b8; border: 3px solid transparent; background-clip: padding-box; border-radius: 999px; }
+.dark ::-webkit-scrollbar-thumb { background-color: #4a5340; }
+.dark ::-webkit-scrollbar-thumb:hover { background-color: #5c6850; }
+
+/* These areas sit above the generic legacy utility mappings. */
+.dark .theme-page, .dark .theme-navbar, .dark .theme-quiz-footer { background-color: #14170f; }
+
+button, a, input, select, textarea, [class*="bg-"], [class*="border-"] {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, transform;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
 }
 
 a {
@@ -232,4 +305,31 @@ a {
 .dialog-slider::-moz-range-track {
   background: transparent;
   height: 5px;
+}
+
+/* Dark-mode slider thumb: a restrained olive surface with the lime accent. */
+.dark .dialog-slider::-webkit-slider-thumb {
+  background: #1b2014;
+  border-color: var(--color-primary);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+}
+.dark .dialog-slider::-moz-range-thumb {
+  background: #1b2014;
+  border-color: var(--color-primary);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+}
+.dark .dialog-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 5px rgb(163 230 53 / 0.14);
+}
+
+/* Keep the custom range track distinct from the olive dialog surface. */
+.dark .dialog-slider-track {
+  background-color: #343b29;
+  box-shadow: 0 0 0 1px #47523a;
+}
+.dark .dialog-slider-progress {
+  background-color: #a3e635;
+}
+.dark .dialog-slider {
+  background-color: transparent;
 }

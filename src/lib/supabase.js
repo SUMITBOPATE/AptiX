@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+console.log(import.meta.env.VITE_SUPABASE_URL )
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Get all categories (main topics)
 export const getCategories = async () => {
@@ -52,16 +52,89 @@ export const getAllTopics = async () => {
   return data || []
 }
 
-// Get questions by topic slug (checks both topic_slug and subcategory)
-export const getQuestionsBySlug = async (slug) => {
+const CATEGORY_ALIASES = {
+  'quantitative-aptitude': ['quantitative-aptitude', 'quantitative', 'quant'],
+  'logical-reasoning': ['logical-reasoning', 'logical reasoning', 'reasoning'],
+  'verbal-ability': ['verbal-ability', 'verbal ability', 'verbal reasoning', 'verbal'],
+};
+
+const normalizeValue = (value) => `${value || ''}`.toLowerCase().trim();
+
+// Load the small fields needed for every displayed statistic. Pagination keeps
+// category/company totals correct even when Supabase's row limit is reached.
+export const getQuestionStatistics = async (categorySlugs, companyNames) => {
+  const pageSize = 1000;
+  const questions = [];
+  let total = 0;
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error, count } = await supabase
+      .from('questions')
+      .select('category, company', { count: 'exact' })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+    if (from === 0) total = count || 0;
+    questions.push(...(data || []));
+    if (!data?.length || questions.length >= total) break;
+  }
+
+  const byCategory = Object.fromEntries(categorySlugs.map(slug => [slug, 0]));
+  const byCompany = Object.fromEntries(companyNames.map(name => [name, 0]));
+
+  questions.forEach(question => {
+    categorySlugs.forEach(categorySlug => {
+      const aliases = CATEGORY_ALIASES[categorySlug] || [categorySlug];
+      if (aliases.map(normalizeValue).includes(normalizeValue(question.category))) {
+        byCategory[categorySlug] += 1;
+      }
+    });
+
+    const companyName = companyNames.find(
+      name => normalizeValue(name) === normalizeValue(question.company)
+    );
+    if (companyName) byCompany[companyName] += 1;
+  });
+
+  return {
+    total,
+    byCategory,
+    byCompany,
+  }
+}
+
+// Fetch only rows belonging to the selected category and its declared subcategory.
+// The aliases preserve the category values already used by the questions table;
+// subcategories still come exclusively from the predefined UI taxonomy.
+export const getQuestionsBySlug = async (categorySlug, subcategorySlug) => {
   const { data, error } = await supabase
     .from('questions')
     .select('*', { count: 'exact' })
-    .or(`topic_slug.eq.${slug},subcategory.eq.${slug}`)
+    .eq('subcategory', subcategorySlug)
     .order('id')
 
   if (error) {
     console.error('Error fetching questions:', error)
+    return []
+  }
+
+  const allowedCategories = new Set(
+    (CATEGORY_ALIASES[categorySlug] || [categorySlug]).map(normalizeValue)
+  );
+
+  return (data || []).filter(question =>
+    allowedCategories.has(normalizeValue(question.category))
+  )
+}
+
+// Used by mock tests: questions are mixed client-side after retrieval.
+export const getAllQuestions = async () => {
+  const { data, error } = await supabase
+    .from('questions')
+    .select('*')
+
+  if (error) {
+    console.error('Error fetching mock-test questions:', error)
     return []
   }
 

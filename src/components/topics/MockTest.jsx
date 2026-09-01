@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Book04Icon, TimerIcon } from '@hugeicons/core-free-icons'
 
-export default function MockTest() {
+export default function MockTest({ questionCount = null }) {
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-white dark:bg-bg">
       <div className="max-w-screen-2xl mx-auto ">
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
@@ -15,7 +15,7 @@ export default function MockTest() {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="bg-white dark:bg-surface rounded-2xl border border-gray-100 dark:border-border p-8 shadow-sm flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-6 flex-1">
             <div className="relative">
               <svg
@@ -42,7 +42,7 @@ export default function MockTest() {
                     className="w-4 h-4 text-lime-500"
                   />
                   <span className="text-sm font-medium text-gray-600">
-                    1000+ Questions
+                    {questionCount === null ? 'Loading…' : `${questionCount} Questions`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function MockTest() {
 
           <div className="flex-shrink-0">
             <Link to="/practice/mock-test">
-              <button className="px-10 py-4 bg-lime-400 text-white font-bold rounded-xl flex items-center gap-3 hover:bg-lime-600 active:scale-95 transition-all shadow-md shadow-lime-500/10">
+              <button className="px-10 py-4 bg-lime-400 text-white dark:text-[#17210a] font-bold rounded-xl flex items-center gap-3 hover:bg-lime-600 active:scale-95 transition-all shadow-md shadow-lime-500/10">
                 Launch Simulation 
               </button>
             </Link>

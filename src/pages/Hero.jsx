@@ -4,7 +4,7 @@ import {ArrowRight02Icon, AbsoluteIcon, Activity02Icon, AiBrain01Icon, AiInnovat
 
 export default function Hero({ onShowTopics }) {
   return (
-    <div className="min-h-screen max-w-screen-2xl justify-center text-gray-800 font-sans">
+    <div className="min-h-screen max-w-screen-2xl justify-center text-gray-800 dark:text-text font-sans">
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen sm:p-8">
         <div className="max-w-6xl w-full text-center z-10 space-y-8">
@@ -28,7 +28,7 @@ export default function Hero({ onShowTopics }) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <button
               onClick={onShowTopics}
-              className="w-full sm:w-auto px-8 py-4 bg-lime-400 text-white font-bold rounded-xl shadow-lg shadow-lime-500/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 bg-lime-400 text-white dark:text-[#17210a] font-bold rounded-xl shadow-lg shadow-lime-500/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               Start Learning
               <HugeiconsIcon icon={ArrowRight02Icon} className="w-5 h-5" />
@@ -46,10 +46,10 @@ export default function Hero({ onShowTopics }) {
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             {/* Fundamentals - Large */}
-            <div className="md:col-span-8 group relative p-6 bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-500">
+            <div className="md:col-span-8 group relative p-6 bg-gray-50 dark:bg-[#1B2014] border border-gray-200 dark:border-[#343B29] rounded-xl overflow-hidden hover:shadow-xl dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 transition-all duration-500">
               <div className="flex flex-col h-full justify-between">
                 <div>
-                  <div className="w-12 h-12 bg-lime-100 rounded-lg flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:border-lime-400/10 rounded-lg flex items-center justify-center mb-4">
                     <HugeiconsIcon icon={AbsoluteIcon} className="w-6 h-6 text-lime-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Fundamentals</h3>
@@ -63,9 +63,9 @@ export default function Hero({ onShowTopics }) {
             </div>
 
             {/* Analytics - Medium */}
-            <div className="md:col-span-4 p-6 bg-gray-50 border border-gray-200 rounded-xl flex flex-col justify-between">
+            <div className="md:col-span-4 p-6 bg-gray-50 dark:bg-[#1B2014] border border-gray-200 dark:border-[#343B29] rounded-xl flex flex-col justify-between">
               <div> 
-                <div className="w-12 h-12 bg-lime-100 rounded-lg flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:border-lime-400/10 rounded-lg flex items-center justify-center mb-4">
                   <HugeiconsIcon icon={Activity02Icon} className="w-6 h-6 text-lime-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Analytics</h3>
@@ -80,8 +80,8 @@ export default function Hero({ onShowTopics }) {
             </div>
 
             {/* Precision - Small */}
-            <div className="md:col-span-4 p-6 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors group">
-              <div className="w-12 h-12 bg-lime-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="md:col-span-4 p-6 bg-gray-50 dark:bg-[#1B2014] border border-gray-200 dark:border-[#343B29] rounded-xl hover:bg-gray-100 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 transition-colors group">
+              <div className="w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:border-lime-400/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <HugeiconsIcon icon={AiBrain01Icon} className="w-6 h-6 text-lime-600" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Precision</h3>
