@@ -35,23 +35,32 @@ function getEstimatedTime(subtopic, difficulty, count) {
   return subtopic.estimatedTime[difficulty];
 }
 
-export default function Dialog({ onClose, selectedSubtopic, onStart }) {
-  const [questionCount, setQuestionCount] = useState(10);
+export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficulty = false, totalQuestions = 50 }) {
+  // For company mode (hideDifficulty), use all questions with multiples of 10; otherwise use default steps of 5
+  const isCompanyMode = hideDifficulty;
+  const maxQuestions = isCompanyMode ? totalQuestions : Math.min(totalQuestions, 50);
+  const stepValue = isCompanyMode ? 10 : 5;
+  const minQuestions = isCompanyMode ? 10 : 5;
+  const sliderSteps = isCompanyMode
+    ? Array.from({ length: Math.ceil(maxQuestions / 10) }, (_, i) => Math.min((i + 1) * 10, maxQuestions))
+    : SLIDER_STEPS.filter(s => s <= maxQuestions);
+
+  const [questionCount, setQuestionCount] = useState(minQuestions);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
 
   const config = { subtopic: selectedSubtopic, selectedDifficulty, count: questionCount };
-  const sliderPercent = ((questionCount - 5) / (50 - 5)) * 100;
+  const sliderPercent = ((questionCount - minQuestions) / (maxQuestions - minQuestions)) * 100;
   const estimatedTime = getEstimatedTime(selectedSubtopic, selectedDifficulty, questionCount);
 
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-[440px] shadow-card overflow-hidden flex flex-col border border-border">
+    <div className="fixed inset-0 bg-black/45 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-surface rounded-2xl w-full max-w-[440px] shadow-card overflow-hidden flex flex-col border border-border">
 
         {/* Dashed lime accent rail — gradient, kept as CSS class */}
         <div   />
 
         {/* Header */}
-        <div className="flex items-start bg-gray-50 gap-2.5 px-4 pt-4 pb-3 border-b border-dashed border-border relative">
+        <div className="flex items-start bg-gray-50 dark:bg-surface-2 gap-2.5 px-4 pt-4 pb-3 border-b border-dashed border-border relative">
           {/* Subtopic badge */}
           <div className="flex items-center gap-1.5 bg-surface border border-dashed border-border rounded-lg px-2 py-2 shrink-0">
             {selectedSubtopic?.icon && (
@@ -86,30 +95,27 @@ export default function Dialog({ onClose, selectedSubtopic, onStart }) {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-[0.8125rem] font-semibold text-text tracking-[0.01em]">Questions</span>
-              <span
-                className="text-sm font-bold text-primary-strong border border-dashed border-primary rounded-md px-2 py-0.5 min-w-8 text-center"
-                style={{ background: 'oklch(95% 0.06 130)' }}
-              >
+              <span className="text-sm font-bold text-primary-strong dark:text-lime-300 border border-dashed border-primary rounded-md px-2 py-0.5 min-w-8 text-center bg-lime-50 dark:bg-lime-400/15">
                 {questionCount}
               </span>
             </div>
 
             {/* Slider with custom track */}
             <div className="relative pt-2 pb-1">
-              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-[5px] bg-surface-2 rounded-full pointer-events-none -mt-[3px]">
-                <div className="h-full bg-primary rounded-full transition-[width_0.1s]" style={{ width: `${sliderPercent}%` }} />
+              <div className="dialog-slider-track absolute top-1/2 -translate-y-1/2 left-0 right-0 h-[5px] bg-surface-2 rounded-full pointer-events-none -mt-[3px]">
+                <div className="dialog-slider-progress h-full bg-primary rounded-full transition-[width_0.1s]" style={{ width: `${sliderPercent}%` }} />
               </div>
               {/* dialog-slider keeps only the thumb pseudo-element CSS */}
               <input
                 type="range"
-                min="5" max="50" step="5"
+                min={minQuestions} max={maxQuestions} step={stepValue}
                 value={questionCount}
                 onChange={(e) => setQuestionCount(Number(e.target.value))}
                 className="dialog-slider relative w-full h-5 appearance-none bg-transparent cursor-pointer z-[2]"
               />
               {/* Tick marks */}
               <div className="flex justify-between px-0.5 mt-1 pointer-events-none">
-                {SLIDER_STEPS.map((step) => (
+                {sliderSteps.map((step) => (
                   <span
                     key={step}
                     className={`w-1 h-1 rounded-full transition-colors ${step <= questionCount ? 'bg-primary' : 'bg-border'}`}
@@ -119,16 +125,13 @@ export default function Dialog({ onClose, selectedSubtopic, onStart }) {
             </div>
 
             <div className="flex justify-between text-[0.6875rem] text-text-muted">
-              <span>5</span><span>50</span>
+              <span>{minQuestions}</span><span>{maxQuestions}</span>
             </div>
           </div>
 
           {/* Estimated time highlight */}
-          <div
-            className="flex items-center gap-3 border-[1.5px] border-dashed border-primary rounded-xl px-3.5 py-2.5"
-            style={{ background: 'oklch(97% 0.04 130)' }}
-          >
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white shrink-0">
+          <div className="flex items-center gap-3 border-[1.5px] border-dashed border-primary rounded-xl px-3.5 py-2.5 bg-lime-50 dark:bg-lime-400/[0.07]">
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white dark:text-[#14170F] shrink-0">
               <ClockIcon />
             </div>
             <div className="flex flex-col gap-0.5">
@@ -142,53 +145,54 @@ export default function Dialog({ onClose, selectedSubtopic, onStart }) {
             </div>
           </div>
 
-          {/* Difficulty */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[0.8125rem] font-semibold text-text tracking-[0.01em]">Difficulty Level</span>
-              <div className="text-text-muted"><TargetIcon /></div>
-            </div>
+          {/* Difficulty - Hidden for company mode */}
+          {!hideDifficulty && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[0.8125rem] font-semibold text-text tracking-[0.01em]">Difficulty Level</span>
+                <div className="text-text-muted"><TargetIcon /></div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {DIFFICULTIES.map((diff) => {
-                const active = selectedDifficulty === diff.id;
-                return (
-                  <button
-                    key={diff.id}
-                    onClick={() => setSelectedDifficulty(diff.id)}
-                    className={`relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left transition-all active:scale-[0.98] ${
-                      active
-                        ? 'border-primary'
-                        : 'border-border bg-surface hover:border-[#c3c3c3] hover:bg-surface-2'
-                    }`}
-                    style={active ? { background: 'oklch(96% 0.06 130)' } : {}}
-                  >
-                    {diff.recommended && (
-                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
-                        Recommended
-                      </span>
-                    )}
-                    <HugeiconsIcon icon={diff.icon} className="w-3 h-3" />
-                    <span className="text-[0.8125rem] font-semibold text-text-strong leading-snug">{diff.label}</span>
-                    <span className="text-[0.6875rem] text-text-muted leading-snug">{diff.desc}</span>
-                  </button>
-                );
-              })}
+              <div className="grid grid-cols-2 gap-2">
+                {DIFFICULTIES.map((diff) => {
+                  const active = selectedDifficulty === diff.id;
+                  return (
+                    <button
+                      key={diff.id}
+                      onClick={() => setSelectedDifficulty(diff.id)}
+                      className={`relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left transition-all active:scale-[0.98] ${
+                        active
+                          ? 'border-primary dark:border-lime-400/50 bg-lime-50 dark:bg-lime-400/[0.07]'
+                          : 'border-border bg-surface hover:border-[#c3c3c3] dark:hover:border-lime-400/20 hover:bg-surface-2'
+                      }`}
+                    >
+                      {diff.recommended && (
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
+                          Recommended
+                        </span>
+                      )}
+                      <HugeiconsIcon icon={diff.icon} className="w-3 h-3" />
+                      <span className="text-[0.8125rem] font-semibold text-text-strong leading-snug">{diff.label}</span>
+                      <span className="text-[0.6875rem] text-text-muted leading-snug">{diff.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="flex gap-2.5 px-5 py-3 border-t border-dashed border-border bg-surface">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-white text-text border-[1.5px] border-border hover:bg-surface-2"
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-white dark:bg-surface text-text border-[1.5px] border-border hover:bg-surface-2"
           >
             Exit
           </button>
           <button
             onClick={() => onStart(config)}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-primary text-white border-none hover:bg-primary-soft"
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-primary text-white dark:text-[#17210a] border-none hover:bg-primary-soft"
           >
             Start Practice →
           </button>

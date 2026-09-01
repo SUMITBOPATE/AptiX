@@ -7,7 +7,6 @@ export const topicsData = [
     title: "Quantitative Aptitude",
     slug: "quantitative-aptitude",
     details: "5 core topics",
-    numberOfQuestions: "500+ Questions",
     description: "Master numerical and mathematical reasoning skills",
     isFeatured: true,
     detailsClass: 'text-secondary-dark',
@@ -104,7 +103,6 @@ export const topicsData = [
     title: "Logical Reasoning",
     slug: "logical-reasoning",
     details: "5 core topics",
-    numberOfQuestions: "400+ Questions", 
     description: "Develop logical thinking and analytical problem-solving",
     isFeatured: false,
     detailsClass: 'text-orange-600',
@@ -201,7 +199,6 @@ export const topicsData = [
     title: "Verbal Ability",
     slug: "verbal-ability",
     details: "5 core topics",
-    numberOfQuestions: "450+ Questions",
     description: "Enhance language skills and reading comprehension",
     isFeatured: false,
     detailsClass: 'text-green-600',
@@ -294,35 +291,34 @@ export const topicsData = [
       }
     }
   },
-  {
-    title: "Mock Tests",
-    slug: "mock-tests",
-    details: "Full-length practice tests",
-    numberOfQuestions: "1000+ Questions",
-    description: "Complete exam simulation with all topics combined",
-    isFeatured: false,
-    detailsClass: 'text-purple-600',
-    icon: "🎯",
-    subcategories: {
-      "full-mock-tests": {
-        name: "Full Mock Tests",
-        slug: "full-mock-tests",
-        icon: "📋",
-        description: "Complete aptitude tests covering all subjects",
-        estimatedTime: {
-          easy: "60 min",
-          medium: "90 min",
-          hard: "120 min"
-        },
-        questionCount: {
-          easy: 50,
-          medium: 75,
-          hard: 100
-        },
-        topics: ["Mixed aptitude", "Time-bound", "Real exam pattern", "Performance analysis"]
-      }
-    }
-  }
+  // {
+  //   title: "Mock Tests",
+  //   slug: "mock-tests",
+  //   details: "Full-length practice tests",
+  //   description: "Complete exam simulation with all topics combined",
+  //   isFeatured: false,
+  //   detailsClass: 'text-purple-600',
+  //   icon: "🎯",
+  //   subcategories: {
+  //     "full-mock-tests": {
+  //       name: "Full Mock Tests",
+  //       slug: "full-mock-tests",
+  //       icon: "📋",
+  //       description: "Complete aptitude tests covering all subjects",
+  //       estimatedTime: {
+  //         easy: "60 min",
+  //         medium: "90 min",
+  //         hard: "120 min"
+  //       },
+  //       questionCount: {
+  //         easy: 50,
+  //         medium: 75,
+  //         hard: 100
+  //       },
+  //       topics: ["Mixed aptitude", "Time-bound", "Real exam pattern", "Performance analysis"]
+  //     }
+  //   }
+  // }
 ];
 
 
@@ -377,7 +373,6 @@ export const topicsData = [
 //     title: "Quantitative Aptitude",
 //     slug: "quantitative-aptitude", // Added slug
 //     details: "20+ topics ",
-//     numberOfQuestions: "1000+ Questions",
 //     description: "Practice MCQs for banking sector exams.",
 //     isFeatured: true,
 //     detailsClass: 'text-secondary-dark'
@@ -386,7 +381,6 @@ export const topicsData = [
 //     title: "Logical Reasoning",
 //     slug: "logical-reasoning", // Added slug
 //     details: "20+ topics ",
-//     numberOfQuestions: "1000+ Questions",
 //     description: "Practice MCQs for banking sector exams.",
 //     isFeatured: false,
 //     detailsClass: 'text-orange-600'
@@ -395,14 +389,12 @@ export const topicsData = [
 //     title: "Verbal Ability",
 //     slug: "verbal-ability", // Added slug
 //     details: "15+ topics ",
-//     numberOfQuestions: "1000+ Questions",
 //     description: "Practice MCQs for banking sector exams.",
 //   },
 //   {
 //     title: "Mock Tests",
 //     slug: "mock-tests", // Added slug
 //     details: "10+ topics ",
-//     numberOfQuestions: "1000+ Questions",
 //     description: "Practice MCQs for banking sector exams.",
 //   }
 // ];

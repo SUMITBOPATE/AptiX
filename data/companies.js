@@ -1,0 +1,43 @@
+export const companiesData = [
+{
+  id: 'tcs',
+  name: 'TCS',
+  fullName: 'Tata Consultancy Services',
+  description: 'Master TCS-specific aptitude patterns and ace your TCS recruitment test.',
+  logo: 'TCS',
+  color: 'blue',
+  difficulty: 'Intermediate',
+  slug: 'tcs',
+},
+{
+  id: 'wipro',
+  name: 'Wipro',
+  fullName: 'Wipro Limited',
+  description: 'Practice Wipro-specific aptitude questions & prepare for  recruitment test.',
+  logo: 'Wipro',
+  color: 'purple',
+  difficulty: 'Intermediate',
+  slug: 'wipro',
+},
+{
+  id: 'cognizant',
+  name: 'Cognizant',
+  fullName: 'Cognizant Technology Solutions',
+  description: 'Practice Cognizant-specific aptitude patterns & ace your the Cognizant  test.',
+  logo: 'Cognizant',
+  color: 'green',
+  difficulty: 'Intermediate',
+  slug: 'cognizant',
+},
+{
+  id: 'infosys',
+  name: 'Infosys',
+  fullName: 'Infosys Limited',
+  description: 'Master Infosys-specific aptitude questions and prepare for test.',
+  logo: 'Infosys',
+  color: 'cyan',
+  difficulty: 'Intermediate',
+  slug: 'infosys',
+},
+  // Add more companies here in future
+];

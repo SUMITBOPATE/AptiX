@@ -1,96 +1,78 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getAllQuestions, getQuestionsBySlug } from '../lib/supabase.js';
-import QuizHeader from '../components/quiz/QuizHeader.jsx';
-import QuizOption from '../components/quiz/QuizOption.jsx';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { companiesData } from '../../data/companies';
+import QuizHeader from '../components/quiz/QuizHeader';
+import QuizOption from '../components/quiz/QuizOption';
 import ArrowLeft from '../icons/ArrowLeft';
 import ArrowRight from '../icons/ArrowRight';
-import ResultComponent from "../components/quiz/ResultComponent.jsx"
+import ResultComponent from '../components/quiz/ResultComponent';
 
-export default function QuizPage() {
-  const location = useLocation();
+export default function CompanyQuizPage() {
+  const { slug, categorySlug } = useParams();
   const navigate = useNavigate();
-  const { topicSlug } = useParams();
+  const location = useLocation();
   const { state } = location;
 
-  const { subtopic, selectedDifficulty, count, isMockTest = false } = state || {};
+  const company = companiesData.find(c => c.slug === slug);
+  const selectedDifficulty = state?.selectedDifficulty || 'easy';
+  const questionsCount = state?.count || 10;
 
   const [allQuestions, setAllQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
   const [answers, setAnswers] = useState([]);
 
+  // Fetch questions for the company and category
   useEffect(() => {
     const fetchQuestions = async () => {
       setLoading(true);
-      const questions = isMockTest
-        ? await getAllQuestions()
-        : await getQuestionsBySlug(topicSlug, subtopic?.slug);
-      setAllQuestions(questions);
+      const { data } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('company', company.name);
+
+      if (data) {
+        let filtered = data;
+
+        // Filter by category if not 'all'
+        if (categorySlug !== 'all') {
+          filtered = data.filter(q => {
+            const cat = q.category?.toLowerCase().trim();
+            if (categorySlug === 'quantitative') {
+              return cat === 'quantitative' || cat === 'quant';
+            } else if (categorySlug === 'reasoning') {
+              return cat === 'reasoning' || cat === 'logical reasoning';
+            } else if (categorySlug === 'verbal') {
+              return cat === 'verbal' || cat === 'verbal reasoning';
+            }
+            return false;
+          });
+        }
+
+        // Limit by question count
+        filtered = filtered.slice(0, questionsCount);
+
+        setAllQuestions(filtered);
+      }
       setLoading(false);
     };
-    fetchQuestions();
-  }, [topicSlug, subtopic?.slug, isMockTest]);
 
-  const filteredQuestions = useMemo(() => {
-    const matchesDifficulty = (question) => {
-      const difficulty = selectedDifficulty?.toLowerCase();
-      const isCompanyQuestion = question.company !== null && question.company !== undefined;
-
-      return difficulty === 'all'
-        || isCompanyQuestion
-        || (question.difficulty || question.level || '').toLowerCase() === difficulty;
-    };
-
-    if (!isMockTest) {
-      return allQuestions.filter(matchesDifficulty).slice(0, count || 10);
+    if (company) {
+      fetchQuestions();
     }
+  }, [company, categorySlug, questionsCount]);
 
-    // Company-tagged questions get their own pool; otherwise use broad aptitude
-    // categories so a short mock still contains Quant, Reasoning, and Verbal.
-    const getMockGroup = (question) => {
-      if (question.company) return `company:${question.company}`;
-      const category = `${question.category || question.topic_slug || question.subcategory || 'other'}`.toLowerCase();
-      if (category.includes('quant')) return 'quantitative';
-      if (category.includes('reason') || category.includes('logical')) return 'reasoning';
-      if (category.includes('verbal')) return 'verbal';
-      return category;
-    };
-
-    const groups = allQuestions.reduce((result, question) => {
-      const category = getMockGroup(question);
-      (result[category] ||= []).push(question);
-      return result;
-    }, {});
-    const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-    // Prefer the selected difficulty within every category. If a category has no
-    // questions at that level, retain it using its available questions instead of
-    // returning a Quant-only mock.
-    const buckets = Object.values(groups).map((questions) => {
-      const difficultyMatches = questions.filter(matchesDifficulty);
-      return shuffle(difficultyMatches.length ? difficultyMatches : questions);
-    });
-    const mixedQuestions = [];
-
-    while (mixedQuestions.length < (count || 10) && buckets.some((bucket) => bucket.length)) {
-      shuffle(buckets).forEach((bucket) => {
-        if (bucket.length && mixedQuestions.length < (count || 10)) {
-          mixedQuestions.push(bucket.pop());
-        }
-      });
-    }
-
-    return mixedQuestions;
-  }, [allQuestions, selectedDifficulty, count, isMockTest]);
+  const filteredQuestions = allQuestions;
   const total = filteredQuestions.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [timer, setTimer] = useState(0);
-  const [showExplanation, setShowExplanation] = useState(false);
   const [attemptedAnswers, setAttemptedAnswers] = useState({}); // Track all attempts per question
-  const [questionResolved, setQuestionResolved] = useState({}); // Track if question is resolved (correct or show answer clicked)
+  const [questionResolved, setQuestionResolved] = useState({}); // Track if question is resolved
   const [showAnswer, setShowAnswer] = useState(false); // Track if show answer was clicked
+  const [showExplanation, setShowExplanation] = useState(false);
 
   useEffect(() => {
     if (isQuizComplete) return;
@@ -108,7 +90,7 @@ export default function QuizPage() {
       'C': currentQuestion.option_c,
       'D': currentQuestion.option_d,
     };
-    return options[letter];
+    return options[letter?.toUpperCase()];
   };
 
   // Helper function to get letter (A, B, C, D) from option text
@@ -120,30 +102,14 @@ export default function QuizPage() {
     return null;
   };
 
-  const getOptionTextForQuestion = (letter, question) => {
-    const options = {
-      A: question.option_a,
-      B: question.option_b,
-      C: question.option_c,
-      D: question.option_d,
-    };
-    return options[letter?.toUpperCase()];
-  };
-
   const handleSelect = (option) => {
     // If question is already resolved, don't allow more selections
     if (questionResolved[currentIndex]) return;
 
     const optionLetter = getLetterFromOptionText(option);
 
-    if (isMockTest) {
-      setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
-      setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
-      return;
-    }
-
     // If this is the correct answer
-    if (optionLetter === currentQuestion.correct_answer) {
+    if (optionLetter === currentQuestion.correct_answer?.toUpperCase()) {
       setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
       setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
       return;
@@ -195,9 +161,9 @@ export default function QuizPage() {
         questionText: question.question,
         options: [question.option_a, question.option_b, question.option_c, question.option_d],
         userAnswer: selectedAnswers[index],
-        correctAnswer: getOptionTextForQuestion(question.correct_answer, question),
+        correctAnswer: getOptionTextFromQuestion(question.correct_answer, question),
         isCorrect: getLetterForQuestion(selectedAnswers[index], question) === question.correct_answer?.toUpperCase(),
-        explanation: question.explanation
+        explanation: question.explanation,
       };
     });
 
@@ -205,25 +171,39 @@ export default function QuizPage() {
     setIsQuizComplete(true);
   };
 
+  const getOptionTextFromQuestion = (letter, question) => {
+    const options = {
+      A: question.option_a,
+      B: question.option_b,
+      C: question.option_c,
+      D: question.option_d,
+    };
+    return options[letter?.toUpperCase()];
+  };
+
   const handleRestart = () => {
     setCurrentIndex(0);
     setSelectedAnswers({});
     setAnswers([]);
     setTimer(0);
-    setShowExplanation(false);
     setAttemptedAnswers({});
     setQuestionResolved({});
     setShowAnswer(false);
+    setShowExplanation(false);
     setIsQuizComplete(false);
   };
 
   // Calculate score for header
-  const score = isMockTest ? 0 : Object.keys(selectedAnswers).filter((key) => {
-    const question = filteredQuestions[key];
-    const userAnswer = selectedAnswers[key];
-    const userLetter = getLetterFromOptionText(userAnswer);
-    return userLetter === question?.correct_answer?.toUpperCase();
-  }).length;
+  const score = Object.keys(selectedAnswers).filter(
+    (key) => getLetterFromOptionText(selectedAnswers[key]) === filteredQuestions[key]?.correct_answer?.toUpperCase()
+  ).length;
+
+  const categoryDisplayNames = {
+    all: 'All Questions',
+    quantitative: 'Quantitative',
+    reasoning: 'Reasoning',
+    verbal: 'Verbal',
+  };
 
   if (loading) {
     return (
@@ -239,9 +219,9 @@ export default function QuizPage() {
     return (
       <div className="min-h-screen bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
-          <p>No questions found for this configuration.</p>
+          <p>No questions found for this category.</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/practice/company/${slug}`)}
             className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer bg-primary text-white border-none hover:bg-primary-soft transition-all"
           >
             Go Back
@@ -253,7 +233,6 @@ export default function QuizPage() {
 
   // Conditional rendering for Results
   if (isQuizComplete) {
-    // Format timer as MM:SS
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
     const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -267,11 +246,12 @@ export default function QuizPage() {
           setIsQuizComplete(false);
         }}
         onRestart={handleRestart}
-        onBackToTopics={() => navigate('/')}
+        onBackToTopics={() => navigate(`/practice/company/${slug}`)}
       />
     );
   }
 
+  const selectedForCurrent = selectedAnswers[currentIndex];
   const isLastQuestion = currentIndex === total - 1;
 
   return (
@@ -288,20 +268,18 @@ export default function QuizPage() {
         totalQuestions={total}
         timer={timer}
         score={score}
-        subtopicName={subtopic?.name}
-        difficulty={selectedDifficulty}
+        subtopicName={`${company?.name} - ${categoryDisplayNames[categorySlug]}`}
       />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-4 gap-4 relative z-10">
-
         {/* Question card with footer */}
         <div className="w-full min-h-[350px] sm:min-h-[400px] max-w-[700px] bg-white dark:bg-[#1B2014] border-1 border-dashed border-gray-200 dark:border-[#343B29] p-4 sm:p-6 flex flex-col gap-3">
           {/* Subtopic & Difficulty - Mobile visible */}
           <div className="flex items-center gap-2 sm:hidden">
-            <span className="text-xs font-medium text-text-muted">{subtopic?.name}</span>
+            <span className="text-xs font-medium text-text-muted">{company?.name}</span>
             <span className="text-gray-300">•</span>
-            <span className="text-xs font-medium text-text-muted capitalize">{selectedDifficulty}</span>
+            <span className="text-xs font-medium text-text-muted capitalize">{categoryDisplayNames[categorySlug]}</span>
           </div>
 
           <p className="text-[0.7rem] font-bold tracking-[0.08em] text-text-muted uppercase m-0">
@@ -319,14 +297,12 @@ export default function QuizPage() {
               const isSelected = selectedAnswers[currentIndex] === option;
               let optionState = 'default';
               
-              if (!isMockTest) {
-                if (isSelected && isCorrect) {
-                  optionState = 'correct';
-                } else if (isAttempted && !isCorrect) {
-                  optionState = 'wrong';
-                } else if (showAnswer && isCorrect) {
-                  optionState = 'correct';
-                }
+              if (isSelected && isCorrect) {
+                optionState = 'correct';
+              } else if (isAttempted && !isCorrect) {
+                optionState = 'wrong';
+              } else if (showAnswer && isCorrect) {
+                optionState = 'correct';
               }
 
               return (
@@ -336,7 +312,7 @@ export default function QuizPage() {
                   text={option}
                   selected={isSelected}
                   state={optionState}
-                  disabled={isMockTest ? questionResolved[currentIndex] : questionResolved[currentIndex] && !isCorrect}
+                  disabled={questionResolved[currentIndex] && !isCorrect}
                   onSelect={() => handleSelect(option)}
                 />
               );
@@ -345,21 +321,21 @@ export default function QuizPage() {
 
           {/* Feedback and Show Answer Button */}
           <div className="space-y-2 mt-2">
-            {!isMockTest && selectedAnswers[currentIndex] && (
+            {selectedAnswers[currentIndex] && (
               <div
                 className={`px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer
+                  getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer?.toUpperCase()
                     ? 'bg-[#f0fdf4] dark:bg-green-500/10 text-primary-strong dark:text-green-300 border border-[#bbf7d0] dark:border-green-500/40'
                     : 'bg-[#fff5f5] dark:bg-red-500/10 text-danger dark:text-red-300 border border-[#fecaca] dark:border-red-500/40'
                 }`}
               >
-                {getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer
+                {getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer?.toUpperCase()
                   ? '✓ Correct!'
                   : `✗ Incorrect — Answer: ${getOptionTextFromLetter(currentQuestion.correct_answer)}`}
               </div>
             )}
 
-            {!isMockTest && !questionResolved[currentIndex] && (
+            {!questionResolved[currentIndex] && (
               <button
                 onClick={handleShowAnswer}
                 className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 transition-all"
@@ -369,27 +345,27 @@ export default function QuizPage() {
             )}
 
             {/* Explanation Toggle */}
-            {!isMockTest && currentQuestion.explanation && selectedAnswers[currentIndex] && (
+            {currentQuestion.explanation && selectedAnswers[currentIndex] && (
               <div>
                 <button
                   onClick={() => setShowExplanation(!showExplanation)}
                   className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition"
                 >
                   <span>📖 Explanation</span>
-                    <span className={`transform transition-transform ${showExplanation ? 'rotate-180' : ''}`}>
-                      ▼
-                    </span>
-                  </button>
+                  <span className={`transform transition-transform ${showExplanation ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
 
-                  {/* Explanation Content */}
-                  {showExplanation && (
-                    <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600">
-                      {currentQuestion.explanation}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                {/* Explanation Content */}
+                {showExplanation && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600">
+                    {currentQuestion.explanation}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
