@@ -3,11 +3,12 @@ import CompanyCard from './CompanyCard'
 import { companiesData } from '../../../data/companies'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Briefcase01Icon } from '@hugeicons/core-free-icons'
+import Reveal from '../ui/Reveal'
 
 export default function Companies({ questionCounts = null }) {
   return (
-    <section className="py-12 bg-white dark:bg-bg">
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="companies-section" className="theme-content-background scroll-mt-20 py-24">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="h-[2px] w-6 bg-lime-500"></div>
@@ -22,12 +23,10 @@ export default function Companies({ questionCounts = null }) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {companiesData.map((company) => (
-            <CompanyCard
-              key={company.id}
-              company={company}
-              questionCount={questionCounts?.[company.name] ?? null}
-            />
+          {companiesData.map((company, index) => (
+            <Reveal key={company.id} index={index} className="h-full">
+              <CompanyCard company={company} questionCount={questionCounts?.[company.name] ?? null} />
+            </Reveal>
           ))}
         </div>
 

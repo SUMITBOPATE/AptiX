@@ -9,6 +9,7 @@ import PracticeExamPage from './pages/PracticeExamPage';
 import CompanyPractice from './pages/CompanyPractice';
 import CompanyQuizPage from './pages/CompanyQuizPage';
 import MockTestPage from './pages/MockTestPage';
+import BentoSection from './components/home/BentoSection';
 import './App.css';
 
 
@@ -27,11 +28,12 @@ function App() {
         <div className="absolute left-0 top-0 h-full w-10 border-l-[1.8px] border-r-[1.8px] border-dashed border-gray-200 dark:border-white/[0.05] slanted-rail-left" />
         <div className="absolute right-0 top-0 h-full w-10 border-l-[1.8px] border-r-[1.8px] border-dashed border-gray-200 dark:border-white/[0.05] slanted-rail-right" />
       </div>
+      <div className="ambient-blob -z-0" aria-hidden="true" />
 
       {/* === APP CONTENT === */}
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<><Hero onShowTopics={handleShowTopics} /><Topics /></>} />
+          <Route index element={<><Hero onShowTopics={handleShowTopics} /><Topics /><BentoSection /></>} />
         </Route>
         {/* Practice pages without navbar/footer */}
           <Route path="practice/exam/:examId" element={<PracticeExamPage />} />

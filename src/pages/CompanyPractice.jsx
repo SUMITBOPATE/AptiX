@@ -5,7 +5,7 @@ import { companiesData } from '../../data/companies';
 import SubtopicCard from '../components/topics/SubtopicCard';
 import Dialog from '../components/quiz/Dailog';
 import { HugeiconsIcon } from '@hugeicons/react'
-import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
+import BackButton from '../components/ui/BackButton';
 
 export default function CompanyPractice() {
   const navigate = useNavigate();
@@ -53,13 +53,7 @@ export default function CompanyPractice() {
     return (
       <div className="min-h-screen flex-1 w-full p-4 text-gray-800">
         <div className="max-w-5xl mx-auto">
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex text-sm items-center text-gray-600 hover:text-lime-600 transition-colors"
-          >
-            <HugeiconsIcon icon={ArrowLeft02Icon} className="mr-2" />
-            Back
-          </button>
+          <BackButton onClick={() => navigate(-1)} />
           <p className="mt-4 text-gray-600">Company not found</p>
         </div>
       </div>
@@ -112,13 +106,7 @@ export default function CompanyPractice() {
   return (
     <div className="min-h-screen flex-1 w-full p-4 pt-3 text-gray-800">
       <div className="max-w-5xl mx-auto mt-2 mb-4">
-        <button
-          onClick={() => navigate('/')}
-          className="inline-flex text-sm items-center text-gray-600 hover:text-lime-600 transition-colors duration-200 mr-4"
-        >
-          <HugeiconsIcon icon={ArrowLeft02Icon} />
-          Back
-        </button>
+        <BackButton onClick={() => navigate('/')} />
 
         <h2 className="mt-3.5 text-2xl font-semibold text-gray-700">Practice</h2>
       </div>
@@ -147,7 +135,7 @@ export default function CompanyPractice() {
                 icon: category.icon,
               }}
               onClick={() => handleSelectCategory(category.slug)}
-              questionCount={questionCounts[category.slug] || 0}
+              questionCount={questionCounts[category.slug] ?? null}
             />
           ))}
         </div>

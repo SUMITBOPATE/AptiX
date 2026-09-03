@@ -5,6 +5,7 @@ import Companies from '../components/companies/Companies'
 import { topicsData } from '../../data/topicData';
 import { companiesData } from '../../data/companies';
 import { getQuestionStatistics } from '../lib/supabase';
+import Reveal from '../components/ui/Reveal';
 
 function Topics() {
   const [questionStats, setQuestionStats] = useState(null);
@@ -35,8 +36,8 @@ function Topics() {
   return (
   <>
 
-    <div id='topics-section' className="min-h-screen bg-color-bg dark:bg-bg sm:p-2 md:p-12 text-gray-800 dark:text-text">
-      <div  className="max-w-screen-2xl mx-auto py-2 ">
+    <div id='topics-section' className="theme-content-background min-h-screen scroll-mt-20 px-4 py-12 sm:px-6 sm:py-14 md:px-12 md:py-16 text-gray-800 dark:text-text">
+      <div className="max-w-6xl mx-auto py-2">
         {/* <h1 className='text-4xl mb-6 text-gray-700'>
           The Best Platform to <span className='font-semibold text-lime-700'>Crack Aptitude</span>
         </h1> */}
@@ -48,14 +49,12 @@ function Topics() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {topicsData.map((topic) => {
           return (
-            <TopicCard
-              key={topic.slug}
-              topic={topic}
-              questionCount={questionStats?.byCategory[topic.slug] ?? null}
-            />
+            <Reveal key={topic.slug} index={topicsData.indexOf(topic)} className="h-full">
+              <TopicCard topic={topic} questionCount={questionStats?.byCategory[topic.slug] ?? null} />
+            </Reveal>
           );
         })}
 

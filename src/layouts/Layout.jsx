@@ -4,25 +4,25 @@ import { Outlet ,useLocation} from 'react-router-dom';
 import { useEffect } from 'react';
 export default function Layout() {
 
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    const navbar = document.querySelector("header");
-    const navbarHeight = navbar ? navbar.offsetHeight : 0;
+    if (!hash) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
 
-    // Scroll to top and adjust for navbar height
-    window.scrollTo({
-      top: 0,
-      behavior: "instant" // change to "smooth" if you want animation
+    // Wait until the routed homepage sections have rendered, then scroll to
+    // the exact card section referenced by the navbar link.
+    const frameId = window.requestAnimationFrame(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
     });
 
-    if (navbarHeight) {
-      window.scrollBy({
-        top: -navbarHeight,
-        behavior: "smooth"
-      });
-    }
-  }, [pathname]);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [pathname, hash]);
 
 
 

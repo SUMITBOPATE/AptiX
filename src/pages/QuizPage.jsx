@@ -6,6 +6,9 @@ import QuizOption from '../components/quiz/QuizOption.jsx';
 import ArrowLeft from '../icons/ArrowLeft';
 import ArrowRight from '../icons/ArrowRight';
 import ResultComponent from "../components/quiz/ResultComponent.jsx"
+import { getUniqueQuestions } from '../utils/questions.js';
+import BackButton from '../components/ui/BackButton.jsx';
+import ExitQuizDialog from '../components/quiz/ExitQuizDialog.jsx';
 
 export default function QuizPage() {
   const location = useLocation();
@@ -33,6 +36,8 @@ export default function QuizPage() {
   }, [topicSlug, subtopic?.slug, isMockTest]);
 
   const filteredQuestions = useMemo(() => {
+    const uniqueQuestions = getUniqueQuestions(allQuestions);
+
     const matchesDifficulty = (question) => {
       const difficulty = selectedDifficulty?.toLowerCase();
       const isCompanyQuestion = question.company !== null && question.company !== undefined;
@@ -43,7 +48,7 @@ export default function QuizPage() {
     };
 
     if (!isMockTest) {
-      return allQuestions.filter(matchesDifficulty).slice(0, count || 10);
+      return uniqueQuestions.filter(matchesDifficulty).slice(0, count || 10);
     }
 
     // Company-tagged questions get their own pool; otherwise use broad aptitude
@@ -57,7 +62,7 @@ export default function QuizPage() {
       return category;
     };
 
-    const groups = allQuestions.reduce((result, question) => {
+    const groups = uniqueQuestions.reduce((result, question) => {
       const category = getMockGroup(question);
       (result[category] ||= []).push(question);
       return result;
@@ -91,6 +96,9 @@ export default function QuizPage() {
   const [attemptedAnswers, setAttemptedAnswers] = useState({}); // Track all attempts per question
   const [questionResolved, setQuestionResolved] = useState({}); // Track if question is resolved (correct or show answer clicked)
   const [showAnswer, setShowAnswer] = useState(false); // Track if show answer was clicked
+  const [showAnswerHint, setShowAnswerHint] = useState(false);
+  const [revealedAnswers, setRevealedAnswers] = useState({});
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   useEffect(() => {
     if (isQuizComplete) return;
@@ -100,41 +108,35 @@ export default function QuizPage() {
 
   const currentQuestion = filteredQuestions[currentIndex];
 
-  // Helper function to get option text from letter (A, B, C, D)
-  const getOptionTextFromLetter = (letter) => {
-    const options = {
-      'A': currentQuestion.option_a,
-      'B': currentQuestion.option_b,
-      'C': currentQuestion.option_c,
-      'D': currentQuestion.option_d,
-    };
-    return options[letter];
+  const getQuestionOptions = (question) => [
+    question?.option_a,
+    question?.option_b,
+    question?.option_c,
+    question?.option_d,
+  ];
+
+  const normalizeAnswer = (value) => `${value ?? ''}`.trim().toLowerCase();
+
+  // Questions imported from different sources store the answer either as an
+  // option letter ("A") or as the option text itself ("20%"). Resolve both.
+  const getCorrectOptionText = (question) => {
+    const options = getQuestionOptions(question);
+    const rawAnswer = `${question?.correct_answer ?? question?.correctAnswer ?? ''}`.trim();
+    const letterMatch = rawAnswer.match(/^(?:option\s*)?([a-d])(?:[.)])?$/i);
+
+    if (letterMatch) return options[letterMatch[1].toUpperCase().charCodeAt(0) - 65];
+
+    return options.find(option => normalizeAnswer(option) === normalizeAnswer(rawAnswer));
   };
 
-  // Helper function to get letter (A, B, C, D) from option text
-  const getLetterFromOptionText = (option) => {
-    if (option === currentQuestion.option_a) return 'A';
-    if (option === currentQuestion.option_b) return 'B';
-    if (option === currentQuestion.option_c) return 'C';
-    if (option === currentQuestion.option_d) return 'D';
-    return null;
-  };
-
-  const getOptionTextForQuestion = (letter, question) => {
-    const options = {
-      A: question.option_a,
-      B: question.option_b,
-      C: question.option_c,
-      D: question.option_d,
-    };
-    return options[letter?.toUpperCase()];
-  };
+  const isCorrectOption = (option, question = currentQuestion) =>
+    normalizeAnswer(option) === normalizeAnswer(getCorrectOptionText(question));
 
   const handleSelect = (option) => {
     // If question is already resolved, don't allow more selections
     if (questionResolved[currentIndex]) return;
 
-    const optionLetter = getLetterFromOptionText(option);
+    setShowAnswerHint(false);
 
     if (isMockTest) {
       setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
@@ -143,13 +145,14 @@ export default function QuizPage() {
     }
 
     // If this is the correct answer
-    if (optionLetter === currentQuestion.correct_answer) {
+    if (isCorrectOption(option)) {
       setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
       setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
       return;
     }
 
     // If it's a wrong answer, add to attempted answers and keep tracking
+    setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
     setAttemptedAnswers((prev) => ({
       ...prev,
       [currentIndex]: [...(prev[currentIndex] || []), option],
@@ -157,8 +160,18 @@ export default function QuizPage() {
   };
 
   const handleShowAnswer = () => {
-    const correctText = getOptionTextFromLetter(currentQuestion.correct_answer);
+    const hasAttemptedOption = Boolean(selectedAnswers[currentIndex])
+      || (attemptedAnswers[currentIndex]?.length ?? 0) > 0;
+
+    if (!hasAttemptedOption) {
+      setShowAnswerHint(true);
+      return;
+    }
+
+    const correctText = getCorrectOptionText(currentQuestion);
+    if (correctText === undefined) return;
     setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: correctText }));
+    setRevealedAnswers((prev) => ({ ...prev, [currentIndex]: true }));
     setShowAnswer(true);
     setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
   };
@@ -168,6 +181,7 @@ export default function QuizPage() {
       setCurrentIndex((i) => i + 1);
       setShowExplanation(false);
       setShowAnswer(false);
+      setShowAnswerHint(false);
     }
   };
 
@@ -176,32 +190,30 @@ export default function QuizPage() {
       setCurrentIndex((i) => i - 1);
       setShowExplanation(false);
       setShowAnswer(false);
+      setShowAnswerHint(false);
     }
   };
 
-  const handleFinishQuiz = () => {
-    const finalAnswers = filteredQuestions.map((question, index) => {
-      // Helper to get letter from option text for this specific question
-      const getLetterForQuestion = (option, q) => {
-        if (option === q.option_a) return 'A';
-        if (option === q.option_b) return 'B';
-        if (option === q.option_c) return 'C';
-        if (option === q.option_d) return 'D';
-        return null;
-      };
-      
+  const handleFinishQuiz = (attemptedOnly = false) => {
+    const questionsToScore = filteredQuestions
+      .map((question, index) => ({ question, index }))
+      .filter(({ index }) => !attemptedOnly || selectedAnswers[index] !== undefined);
+
+    const finalAnswers = questionsToScore.map(({ question, index }) => {
       return {
         questionId: question.id,
         questionText: question.question,
         options: [question.option_a, question.option_b, question.option_c, question.option_d],
-        userAnswer: selectedAnswers[index],
-        correctAnswer: getOptionTextForQuestion(question.correct_answer, question),
-        isCorrect: getLetterForQuestion(selectedAnswers[index], question) === question.correct_answer?.toUpperCase(),
+        userAnswer: revealedAnswers[index] ? 'N/A' : selectedAnswers[index],
+        correctAnswer: getCorrectOptionText(question),
+        isCorrect: !revealedAnswers[index] && isCorrectOption(selectedAnswers[index], question),
+        isNA: Boolean(revealedAnswers[index]),
         explanation: question.explanation
       };
     });
 
     setAnswers(finalAnswers);
+    setShowExitDialog(false);
     setIsQuizComplete(true);
   };
 
@@ -214,15 +226,17 @@ export default function QuizPage() {
     setAttemptedAnswers({});
     setQuestionResolved({});
     setShowAnswer(false);
+    setShowAnswerHint(false);
+    setRevealedAnswers({});
     setIsQuizComplete(false);
   };
 
   // Calculate score for header
   const score = isMockTest ? 0 : Object.keys(selectedAnswers).filter((key) => {
+    if (revealedAnswers[key]) return false;
     const question = filteredQuestions[key];
     const userAnswer = selectedAnswers[key];
-    const userLetter = getLetterFromOptionText(userAnswer);
-    return userLetter === question?.correct_answer?.toUpperCase();
+    return isCorrectOption(userAnswer, question);
   }).length;
 
   if (loading) {
@@ -240,12 +254,7 @@ export default function QuizPage() {
       <div className="min-h-screen bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
           <p>No questions found for this configuration.</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer bg-primary text-white border-none hover:bg-primary-soft transition-all"
-          >
-            Go Back
-          </button>
+          <BackButton onClick={() => navigate(-1)} label="Go Back" />
         </div>
       </div>
     );
@@ -273,6 +282,8 @@ export default function QuizPage() {
   }
 
   const isLastQuestion = currentIndex === total - 1;
+  const hasAttemptedCurrentQuestion = Boolean(selectedAnswers[currentIndex])
+    || (attemptedAnswers[currentIndex]?.length ?? 0) > 0;
 
   return (
     <div className="theme-page min-h-screen bg-white flex flex-col relative">
@@ -290,7 +301,17 @@ export default function QuizPage() {
         score={score}
         subtopicName={subtopic?.name}
         difficulty={selectedDifficulty}
+        onExit={() => setShowExitDialog(true)}
       />
+
+      {showExitDialog && (
+        <ExitQuizDialog
+          hasAttempts={Object.keys(selectedAnswers).length > 0}
+          onContinue={() => setShowExitDialog(false)}
+          onExit={() => navigate(-1)}
+          onViewResults={() => handleFinishQuiz(true)}
+        />
+      )}
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-4 gap-4 relative z-10">
@@ -314,7 +335,7 @@ export default function QuizPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
             {[currentQuestion.option_a, currentQuestion.option_b, currentQuestion.option_c, currentQuestion.option_d].map((option, i) => {
-              const isCorrect = getLetterFromOptionText(option) === currentQuestion.correct_answer?.toUpperCase();
+              const isCorrect = isCorrectOption(option);
               const isAttempted = (attemptedAnswers[currentIndex] || []).includes(option);
               const isSelected = selectedAnswers[currentIndex] === option;
               let optionState = 'default';
@@ -348,24 +369,35 @@ export default function QuizPage() {
             {!isMockTest && selectedAnswers[currentIndex] && (
               <div
                 className={`px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer
+                  isCorrectOption(selectedAnswers[currentIndex])
                     ? 'bg-[#f0fdf4] dark:bg-green-500/10 text-primary-strong dark:text-green-300 border border-[#bbf7d0] dark:border-green-500/40'
                     : 'bg-[#fff5f5] dark:bg-red-500/10 text-danger dark:text-red-300 border border-[#fecaca] dark:border-red-500/40'
                 }`}
               >
-                {getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer
+                {isCorrectOption(selectedAnswers[currentIndex])
                   ? '✓ Correct!'
-                  : `✗ Incorrect — Answer: ${getOptionTextFromLetter(currentQuestion.correct_answer)}`}
+                  : `✗ Incorrect — Answer: ${getCorrectOptionText(currentQuestion)}`}
               </div>
             )}
 
             {!isMockTest && !questionResolved[currentIndex] && (
-              <button
-                onClick={handleShowAnswer}
-                className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 transition-all"
-              >
-                Show Answer
-              </button>
+              <div className="relative">
+                {showAnswerHint && (
+                  <div
+                    role="tooltip"
+                    className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg"
+                  >
+                    Please click one option above first
+                    <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                  </div>
+                )}
+                <button
+                  onClick={handleShowAnswer}
+                  className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 transition-all"
+                >
+                  Show Answer
+                </button>
+              </div>
             )}
 
             {/* Explanation Toggle */}
@@ -411,8 +443,8 @@ export default function QuizPage() {
 
           {isLastQuestion ? (
             <button
-              onClick={handleFinishQuiz}
-              disabled={!questionResolved[currentIndex]}
+              onClick={() => handleFinishQuiz()}
+              disabled={!hasAttemptedCurrentQuestion}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-white bg-lime-500 hover:bg-lime-600 disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
             >
               Finish
@@ -421,7 +453,7 @@ export default function QuizPage() {
           ) : (
             <button
               onClick={handleNext}
-              disabled={!questionResolved[currentIndex]}
+              disabled={!hasAttemptedCurrentQuestion}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-primary hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
             >
               Next

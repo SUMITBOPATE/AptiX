@@ -1,19 +1,38 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+const getInitialTheme = () => {
+  const savedTheme = localStorage.getItem('aptix-theme')
+  if (savedTheme === 'dark') return true
+  if (savedTheme === 'light') return false
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+}
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
+  const [isDark, setIsDark] = useState(getInitialTheme)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
     localStorage.setItem('aptix-theme', isDark ? 'dark' : 'light')
   }, [isDark])
 
+  const toggleTheme = () => {
+    setIsDark((currentTheme) => {
+      const nextTheme = !currentTheme
+      // Apply synchronously so every click produces immediate visual feedback.
+      document.documentElement.classList.toggle('dark', nextTheme)
+      document.documentElement.style.colorScheme = nextTheme ? 'dark' : 'light'
+      return nextTheme
+    })
+  }
+
   const navLinks = [
-    
     { to: '/#topics-section', label: 'Practice' },
-    { to: '/practice/mock-test', label: 'Mock Test' },
+     { to: '/#mock-test-section', label: 'Mock Test' },
+    { to: '/#companies-section', label: 'Companies' },
+   
   ]
 
   return (
@@ -34,7 +53,7 @@ export default function Navbar() {
             <Link
               key={link.to}
               to={link.to}
-              className="text-gray-700 dark:text-text hover:text-lime-600 font-medium transition-colors"
+              className="nav-link-slide text-gray-700 dark:text-text hover:text-lime-600 font-medium transition-colors"
             >
               {link.label}
             </Link>
@@ -44,19 +63,20 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setIsDark((value) => !value)}
-            className="relative w-[68px] h-8 rounded-full border border-slate-200 bg-slate-100 hover:border-slate-300 dark:border-[#343B29] dark:bg-[#1B2014] dark:hover:border-lime-400/30 transition-colors"
+            onClick={toggleTheme}
+            aria-pressed={isDark}
+            className="relative h-7 w-[42px] cursor-pointer rounded-full border border-[#deded8] bg-[#f5f5f0] transition-[background-color,border-color,transform] duration-[250ms] hover:border-lime-400/50 hover:bg-lime-50/60 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/45 focus-visible:ring-offset-2 dark:border-[#424936] dark:bg-[#24291d] dark:hover:border-lime-400/40 dark:hover:bg-[#2a301f] dark:focus-visible:ring-offset-[#14170f]"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            <svg className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0-1.414-1.414M7.05 7.05 5.636 5.636M15.5 12a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" /></svg>
-            <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 dark:text-lime-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 15.2A8.5 8.5 0 0 1 8.8 3a8.5 8.5 0 1 0 12.2 12.2Z" /></svg>
-            <span className={`absolute top-1 left-1 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-[#F5F5EE] shadow-sm transition-transform duration-200 ${isDark ? 'translate-x-[34px]' : 'translate-x-0'}`}>
-              {isDark ? (
-                <svg className="w-3.5 h-3.5 text-[#14170F]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 15.2A8.5 8.5 0 0 1 8.8 3a8.5 8.5 0 1 0 12.2 12.2Z" /></svg>
-              ) : (
-                <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0-1.414-1.414M7.05 7.05 5.636 5.636M15.5 12a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" /></svg>
-              )}
+            <span
+              className="absolute left-[3px] top-[3px] flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[transform,background-color,border-color] duration-[250ms] dark:border-lime-400/15 dark:bg-[#303724]"
+              style={{
+                transform: isDark ? 'translateX(16px)' : 'translateX(0)',
+              }}
+            >
+              <svg className={`absolute h-3.5 w-3.5 text-slate-700 transition-[opacity,transform] duration-[250ms] ${isDark ? 'rotate-90 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0-1.414-1.414M7.05 7.05 5.636 5.636M15.5 12a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" /></svg>
+              <svg className={`absolute h-3.5 w-3.5 text-lime-400 transition-[opacity,transform] duration-[250ms] ${isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-75 opacity-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M21 15.2A8.5 8.5 0 0 1 8.8 3a8.5 8.5 0 1 0 12.2 12.2Z" /></svg>
             </span>
           </button>
 
@@ -87,7 +107,7 @@ export default function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-gray-700 dark:text-text hover:text-lime-600 font-medium py-2 transition-colors"
+                className="nav-link-slide text-gray-700 dark:text-text hover:text-lime-600 font-medium py-2 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}

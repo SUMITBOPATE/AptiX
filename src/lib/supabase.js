@@ -60,6 +60,14 @@ const CATEGORY_ALIASES = {
 
 const normalizeValue = (value) => `${value || ''}`.toLowerCase().trim();
 
+const SUBCATEGORY_ALIASES = {
+  percentages: ['percentages', 'percentage'],
+  percentage: ['percentages', 'percentage'],
+};
+
+const getSubcategoryAliases = (slug) =>
+  SUBCATEGORY_ALIASES[normalizeValue(slug)] || [slug];
+
 // Load the small fields needed for every displayed statistic. Pagination keeps
 // category/company totals correct even when Supabase's row limit is reached.
 export const getQuestionStatistics = async (categorySlugs, companyNames) => {
@@ -107,10 +115,11 @@ export const getQuestionStatistics = async (categorySlugs, companyNames) => {
 // The aliases preserve the category values already used by the questions table;
 // subcategories still come exclusively from the predefined UI taxonomy.
 export const getQuestionsBySlug = async (categorySlug, subcategorySlug) => {
+  const subcategoryAliases = getSubcategoryAliases(subcategorySlug);
   const { data, error } = await supabase
     .from('questions')
     .select('*', { count: 'exact' })
-    .eq('subcategory', subcategorySlug)
+    .in('subcategory', subcategoryAliases)
     .order('id')
 
   if (error) {
@@ -143,10 +152,11 @@ export const getAllQuestions = async () => {
 
 // Get question count by slug
 export const getQuestionCountBySlug = async (slug) => {
+  const aliases = getSubcategoryAliases(slug);
   const { count, error } = await supabase
     .from('questions')
     .select('*', { count: 'exact', head: true })
-    .or(`topic_slug.eq.${slug},subcategory.eq.${slug}`)
+    .or(`topic_slug.in.(${aliases.join(',')}),subcategory.in.(${aliases.join(',')})`)
 
   if (error) {
     console.error('Error getting question count:', error)
