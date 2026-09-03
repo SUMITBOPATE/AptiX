@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Book04Icon, TimerIcon } from '@hugeicons/core-free-icons'
+import Reveal from '../ui/Reveal'
 
 export default function MockTest({ questionCount = null }) {
   return (
-    <section className="py-12 bg-white dark:bg-bg">
-      <div className="max-w-screen-2xl mx-auto ">
+    <section id="mock-test-section" className="theme-content-background scroll-mt-20 py-12">
+      <Reveal className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
             Mock Tests
@@ -66,7 +67,7 @@ export default function MockTest({ questionCount = null }) {
             </Link>
           </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   )
 }

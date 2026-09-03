@@ -5,7 +5,8 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
   // Derive score from answers array
   const correct = answers.filter(a => a.isCorrect).length;
   const total = answers.length;
-  const wrong = total - correct;
+  const na = answers.filter(a => a.isNA).length;
+  const wrong = total - correct - na;
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
   // Calculate circle progress (correct out of total)
@@ -63,7 +64,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
       {/* Stats Cards */}
       <div className="px-6 pb-4">
         <div className="max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Correct */}
             <div className="p-3 bg-green-50 rounded-lg border border-green-200 text-center">
               <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-5 h-5 text-green-500 mx-auto mb-1" />
@@ -76,6 +77,12 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
               <HugeiconsIcon icon={CancelCircleIcon} className="w-5 h-5 text-red-500 mx-auto mb-1" />
               <p className="text-lg font-bold text-red-600">{wrong}</p>
               <p className="text-xs text-red-600 font-medium">Wrong</p>
+            </div>
+
+            {/* Revealed / Not attempted */}
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-center">
+              <p className="text-lg font-bold text-amber-600">{na}</p>
+              <p className="text-xs text-amber-600 font-medium">N/A</p>
             </div>
 
             {/* Time */}
@@ -116,6 +123,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
           <div className="space-y-2">
             {answers.map((answer, index) => {
               const isCorrect = answer.isCorrect;
+              const isNA = answer.isNA;
 
               return (
                 <div
@@ -126,10 +134,12 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                   <div className="flex items-start gap-3">
                     {/* Status Icon - Simple circle */}
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                      isCorrect ? 'bg-green-100' : 'bg-red-100'
+                      isCorrect ? 'bg-green-100' : isNA ? 'bg-amber-100' : 'bg-red-100'
                     }`}>
                       {isCorrect ? (
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-3 h-3 text-green-600" />
+                      ) : isNA ? (
+                        <span className="text-[0.6rem] font-bold text-amber-700">NA</span>
                       ) : (
                         <HugeiconsIcon icon={CancelCircleIcon} className="w-3 h-3 text-red-600" />
                       )}
@@ -142,7 +152,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                       </p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {!isCorrect && answer.userAnswer && (
-                          <span className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded">
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${isNA ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'}`}>
                             Your answer: {answer.userAnswer}
                           </span>
                         )}

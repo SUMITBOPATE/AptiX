@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 import Dialog from '../components/quiz/Dailog';
+import BackButton from '../components/ui/BackButton';
 
 const mockTest = {
   name: 'Mixed Mock Test',
@@ -24,12 +23,7 @@ export default function MockTestPage() {
   return (
     <div className="theme-page min-h-screen p-4 pt-6 text-gray-800 dark:text-text">
       <div className="max-w-5xl mx-auto">
-        <button
-          onClick={() => navigate('/')}
-          className="inline-flex items-center text-sm text-gray-600 dark:text-text hover:text-lime-600 transition-colors"
-        >
-          <HugeiconsIcon icon={ArrowLeft02Icon} className="mr-1" /> Back
-        </button>
+        <BackButton onClick={() => navigate('/')} />
         <div className="mt-6 bg-white dark:bg-surface border border-gray-200 dark:border-border rounded-xl p-6">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-lime-600 dark:text-lime-400">Mock test</p>
           <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-text-strong">Mixed aptitude practice</h1>

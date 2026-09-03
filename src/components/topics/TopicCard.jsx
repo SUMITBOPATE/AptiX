@@ -8,7 +8,7 @@ export default function TopicCard({ topic, questionCount = null }) {
   const { title, details, description, slug } = topic;
 
   return (
-    <div className="group bg-white dark:bg-surface shadow-soft rounded-xl p-8 border border-border transition-all duration-300 ease-in-out hover:shadow-card">
+    <div className="motion-card group h-full bg-white dark:bg-surface rounded-xl p-8 border border-[#EAEAEA] dark:border-border">
       {/* Title */}
       <h2 className="text-2xl font-semibold text-text-strong mb-3 leading-tight">
         {title}

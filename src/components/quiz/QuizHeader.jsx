@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import ArrowLeft from '../../icons/ArrowLeft';
+import BackButton from '../ui/BackButton';
 
 function BookmarkIcon() {
   return (
@@ -18,7 +18,7 @@ function SettingsIcon() {
   );
 }
 
-export default function QuizHeader({ currentIndex, totalQuestions, timer, score, subtopicName, difficulty }) {
+export default function QuizHeader({ currentIndex, totalQuestions, timer, score, subtopicName, difficulty, onExit }) {
   const navigate = useNavigate();
 
   const formatTime = (secs) => {
@@ -32,13 +32,7 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
 
       {/* Left: Topic badge */}
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-text-strong text-sm font-medium border border-border rounded-lg px-2 sm:px-3 py-1.5 cursor-pointer bg-transparent hover:bg-surface transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Exit</span>
-        </button>
+        <BackButton onClick={onExit || (() => navigate(-1))} label="Exit" compact />
 
         {/* Topic & Difficulty badge */}
         {(subtopicName || difficulty) && (

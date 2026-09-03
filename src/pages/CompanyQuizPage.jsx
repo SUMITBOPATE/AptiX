@@ -7,6 +7,9 @@ import QuizOption from '../components/quiz/QuizOption';
 import ArrowLeft from '../icons/ArrowLeft';
 import ArrowRight from '../icons/ArrowRight';
 import ResultComponent from '../components/quiz/ResultComponent';
+import { getUniqueQuestions } from '../utils/questions.js';
+import BackButton from '../components/ui/BackButton.jsx';
+import ExitQuizDialog from '../components/quiz/ExitQuizDialog.jsx';
 
 export default function CompanyQuizPage() {
   const { slug, categorySlug } = useParams();
@@ -33,11 +36,11 @@ export default function CompanyQuizPage() {
         .eq('company', company.name);
 
       if (data) {
-        let filtered = data;
+        let filtered = getUniqueQuestions(data);
 
         // Filter by category if not 'all'
         if (categorySlug !== 'all') {
-          filtered = data.filter(q => {
+          filtered = filtered.filter(q => {
             const cat = q.category?.toLowerCase().trim();
             if (categorySlug === 'quantitative') {
               return cat === 'quantitative' || cat === 'quant';
@@ -73,6 +76,8 @@ export default function CompanyQuizPage() {
   const [questionResolved, setQuestionResolved] = useState({}); // Track if question is resolved
   const [showAnswer, setShowAnswer] = useState(false); // Track if show answer was clicked
   const [showExplanation, setShowExplanation] = useState(false);
+  const [revealedAnswers, setRevealedAnswers] = useState({});
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   useEffect(() => {
     if (isQuizComplete) return;
@@ -116,6 +121,7 @@ export default function CompanyQuizPage() {
     }
 
     // If it's a wrong answer, add to attempted answers and keep tracking
+    setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
     setAttemptedAnswers((prev) => ({
       ...prev,
       [currentIndex]: [...(prev[currentIndex] || []), option],
@@ -125,6 +131,7 @@ export default function CompanyQuizPage() {
   const handleShowAnswer = () => {
     const correctText = getOptionTextFromLetter(currentQuestion.correct_answer);
     setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: correctText }));
+    setRevealedAnswers((prev) => ({ ...prev, [currentIndex]: true }));
     setShowAnswer(true);
     setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
   };
@@ -145,8 +152,12 @@ export default function CompanyQuizPage() {
     }
   };
 
-  const handleFinishQuiz = () => {
-    const finalAnswers = filteredQuestions.map((question, index) => {
+  const handleFinishQuiz = (attemptedOnly = false) => {
+    const questionsToScore = filteredQuestions
+      .map((question, index) => ({ question, index }))
+      .filter(({ index }) => !attemptedOnly || selectedAnswers[index] !== undefined);
+
+    const finalAnswers = questionsToScore.map(({ question, index }) => {
       // Helper to get letter from option text for this specific question
       const getLetterForQuestion = (option, q) => {
         if (option === q.option_a) return 'A';
@@ -160,14 +171,16 @@ export default function CompanyQuizPage() {
         questionId: question.id,
         questionText: question.question,
         options: [question.option_a, question.option_b, question.option_c, question.option_d],
-        userAnswer: selectedAnswers[index],
+        userAnswer: revealedAnswers[index] ? 'N/A' : selectedAnswers[index],
         correctAnswer: getOptionTextFromQuestion(question.correct_answer, question),
-        isCorrect: getLetterForQuestion(selectedAnswers[index], question) === question.correct_answer?.toUpperCase(),
+        isCorrect: !revealedAnswers[index] && getLetterForQuestion(selectedAnswers[index], question) === question.correct_answer?.toUpperCase(),
+        isNA: Boolean(revealedAnswers[index]),
         explanation: question.explanation,
       };
     });
 
     setAnswers(finalAnswers);
+    setShowExitDialog(false);
     setIsQuizComplete(true);
   };
 
@@ -190,12 +203,14 @@ export default function CompanyQuizPage() {
     setQuestionResolved({});
     setShowAnswer(false);
     setShowExplanation(false);
+    setRevealedAnswers({});
     setIsQuizComplete(false);
   };
 
   // Calculate score for header
   const score = Object.keys(selectedAnswers).filter(
-    (key) => getLetterFromOptionText(selectedAnswers[key]) === filteredQuestions[key]?.correct_answer?.toUpperCase()
+    (key) => !revealedAnswers[key]
+      && getLetterFromOptionText(selectedAnswers[key]) === filteredQuestions[key]?.correct_answer?.toUpperCase()
   ).length;
 
   const categoryDisplayNames = {
@@ -220,12 +235,7 @@ export default function CompanyQuizPage() {
       <div className="min-h-screen bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
           <p>No questions found for this category.</p>
-          <button
-            onClick={() => navigate(`/practice/company/${slug}`)}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer bg-primary text-white border-none hover:bg-primary-soft transition-all"
-          >
-            Go Back
-          </button>
+          <BackButton onClick={() => navigate(`/practice/company/${slug}`)} label="Go Back" />
         </div>
       </div>
     );
@@ -253,6 +263,8 @@ export default function CompanyQuizPage() {
 
   const selectedForCurrent = selectedAnswers[currentIndex];
   const isLastQuestion = currentIndex === total - 1;
+  const hasAttemptedCurrentQuestion = Boolean(selectedAnswers[currentIndex])
+    || (attemptedAnswers[currentIndex]?.length ?? 0) > 0;
 
   return (
     <div className="theme-page min-h-screen bg-white flex flex-col relative">
@@ -269,7 +281,17 @@ export default function CompanyQuizPage() {
         timer={timer}
         score={score}
         subtopicName={`${company?.name} - ${categoryDisplayNames[categorySlug]}`}
+        onExit={() => setShowExitDialog(true)}
       />
+
+      {showExitDialog && (
+        <ExitQuizDialog
+          hasAttempts={Object.keys(selectedAnswers).length > 0}
+          onContinue={() => setShowExitDialog(false)}
+          onExit={() => navigate(`/practice/company/${slug}`)}
+          onViewResults={() => handleFinishQuiz(true)}
+        />
+      )}
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-4 gap-4 relative z-10">
@@ -387,8 +409,8 @@ export default function CompanyQuizPage() {
 
           {isLastQuestion ? (
             <button
-              onClick={handleFinishQuiz}
-              disabled={!questionResolved[currentIndex]}
+              onClick={() => handleFinishQuiz()}
+              disabled={!hasAttemptedCurrentQuestion}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-white bg-lime-500 hover:bg-lime-600 disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
             >
               Finish
@@ -397,7 +419,7 @@ export default function CompanyQuizPage() {
           ) : (
             <button
               onClick={handleNext}
-              disabled={!questionResolved[currentIndex]}
+              disabled={!hasAttemptedCurrentQuestion}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-primary hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
             >
               Next

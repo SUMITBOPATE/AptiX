@@ -22,9 +22,33 @@ export default function CompanyCard({ company, questionCount = null }) {
   };
 
   const companyColor = company.color || 'blue';
+  const isComingSoon = questionCount === 0;
+
+  const practiceButton = (
+    <button
+      disabled={isComingSoon}
+      className={`w-full px-6 py-3 font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+        isComingSoon
+          ? 'cursor-not-allowed bg-gray-200 text-gray-500 dark:bg-white/10 dark:text-gray-400'
+          : 'bg-lime-400 text-white dark:text-[#17210a] shadow-md shadow-lime-500/20 hover:bg-lime-500 hover:scale-[1.02] active:scale-95'
+      }`}
+    >
+      {isComingSoon ? 'Coming Soon' : 'Start Practice'}
+      {!isComingSoon && (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      )}
+    </button>
+  );
 
   return (
-    <div className={`group bg-white dark:bg-surface rounded-xl p-6 border border-gray-100 dark:border-border shadow-sm hover:shadow-md transition-all duration-300 ${colorClasses[companyColor]}`}>
+    <div className={`motion-card group relative h-full bg-white dark:bg-surface rounded-xl p-6 border border-[#EAEAEA] dark:border-border ${colorClasses[companyColor]}`}>
+      {isComingSoon && (
+        <span className="absolute right-4 top-4 rounded-full bg-amber-100 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
+          Coming Soon
+        </span>
+      )}
       {/* Company Logo / Badge */}
       <div className={`inline-flex items-center justify-center w-14 h-14 rounded-lg ${logoColorClasses[companyColor]} mb-4 font-bold text-xl`}>
         {name}
@@ -67,14 +91,11 @@ export default function CompanyCard({ company, questionCount = null }) {
       </div>
 
       {/* CTA Button */}
-      <Link to={`/practice/company/${slug}`} className="w-full">
-        <button className="w-full px-6 py-3 bg-lime-400 text-white dark:text-[#17210a] font-bold rounded-lg shadow-md shadow-lime-500/20 hover:bg-lime-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
-          Start Practice
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </Link>
+      {isComingSoon ? practiceButton : (
+        <Link to={`/practice/company/${slug}`} className="w-full">
+          {practiceButton}
+        </Link>
+      )}
     </div>
   );
 }
