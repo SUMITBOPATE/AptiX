@@ -6,7 +6,7 @@ const DIFFICULTIES = [
   { id: 'easy',   label: 'Easy',        icon: Leaf01Icon, desc: 'Foundational concepts' },
   { id: 'medium', label: 'Medium',      icon: FlashIcon, desc: 'Word problems & logic' },
   { id: 'hard',   label: 'Hard',        icon: Fire02Icon, desc: 'Advanced & complex' },
-  { id: 'ai',     label: 'AI Adaptive', icon: StarsIcon, desc: 'Smart difficulty tuning', recommended: true },
+  { id: 'adaptive',     label: 'Adaptive', icon: StarsIcon, desc: 'Smart difficulty recommendation', recommended: true },
 ];
 
 const SLIDER_STEPS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
