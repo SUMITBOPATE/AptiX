@@ -12,8 +12,8 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="relative z-30 border-t border-dashed border-gray-200 py-6 px-6 bg-white">
-      <div className="max-w-6xl mx-auto flex flex-col px-2 md:flex-row justify-between items-center gap-4">
+    <footer className="relative z-30 border-t border-dashed border-gray-200 py-6 px-4 bg-white">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         {/* Logo */}
         <div className="text-xl font-bold">
           <span className="text-black dark:text-text-strong">Apti</span>

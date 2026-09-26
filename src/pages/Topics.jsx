@@ -38,9 +38,9 @@ function Topics() {
   return (
     <div
       id="topics-section"
-      className="theme-content-background scroll-mt-20 px-4 py-12 sm:px-6 sm:py-14 md:px-12 md:py-16 text-gray-800 dark:text-text"
+      className="theme-content-background scroll-mt-20 pt-12 md:pt-16 text-gray-800 dark:text-text"
     >
-      <div className="max-w-6xl mx-auto py-2">
+      <div className="max-w-6xl mx-auto mb-8">
         <h2 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
           Topics
         </h2>

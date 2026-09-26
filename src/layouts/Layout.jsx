@@ -43,7 +43,7 @@ export default function Layout() {
         Skip to content
       </a>
       <Navbar />
-      <main id="main-content" ref={mainRef} tabIndex={-1} className="flex-1 pt-16 px-6 md:px-12 relative z-10 focus:outline-none">
+      <main id="main-content" ref={mainRef} tabIndex={-1} className="flex-1 pt-16 px-4 md:px-8 relative z-10 focus:outline-none">
         <Outlet />
       </main>
       <Footer />

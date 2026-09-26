@@ -343,6 +343,41 @@ label {
   );
 }
 
+/* Navbar edges step toward the centre once the page is scrolled, so the bar
+   gives back some of the reading width while content passes under it.
+
+   Transform only. Animating width or margin here would relayout the whole nav
+   on every scroll tick; translateX stays on the compositor. A transition rather
+   than a keyframe, because a scroll direction change mid-flight has to retarget
+   smoothly instead of restarting from zero.
+
+   The distance is fluid rather than fixed. A single large value collides with
+   the centre links at the md breakpoint, where the three labels leave only
+   ~110px of clearance; a single small one looks inert on a 27" display. So the
+   travel scales with the viewport — 61px at 768, 109px at 1366, 154px at 1920
+   — and stays clear of the links at every width.
+
+   ease-in-out, not ease-out: this is an element repositioning on screen rather
+   than entering or responding to a tap, and it has to read as deliberate in
+   both directions — the trip out and the trip back. Still under the 300ms UI
+   cap at --duration-slow. */
+.nav-edge-left,
+.nav-edge-right {
+  transition: transform var(--duration-slow) var(--ease-in-out);
+}
+
+/* Desktop only: below md the centre links are hidden, so there is nothing for
+   the edges to move toward and the shift would just look broken. */
+@media (min-width: 768px) {
+  .theme-navbar[data-scrolled='true'] .nav-edge-left {
+    transform: translateX(clamp(4rem, 8vw, 11rem));
+  }
+
+  .theme-navbar[data-scrolled='true'] .nav-edge-right {
+    transform: translateX(calc(-1 * clamp(4rem, 8vw, 11rem)));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Must match the [data-armed] specificity, otherwise the armed rule keeps
      the element at opacity 0 while transition is off — permanently blank. */
@@ -359,6 +394,12 @@ label {
   #mobile-menu {
     translate: 0 0;
     scale: 1;
+  }
+
+  .nav-edge-left,
+  .nav-edge-right {
+    transition: none;
+    transform: none;
   }
 
   .ambient-blob {

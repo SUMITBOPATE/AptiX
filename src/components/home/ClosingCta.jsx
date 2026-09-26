@@ -13,7 +13,7 @@ const scrollTo = (id) => {
 
 export default function ClosingCta({ onStart }) {
   return (
-    <section className="theme-content-background px-4 pb-24 sm:px-6 md:px-12">
+    <section className="theme-content-background pt-12 md:pt-16 pb-16 md:pb-24">
       <div className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white px-6 py-14 text-center sm:px-12 dark:border-border dark:bg-surface">
         <h2 className="mb-4 text-3xl font-semibold leading-tight tracking-tight text-gray-900 md:text-4xl">
           Ready to put it in practice?

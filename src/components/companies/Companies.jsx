@@ -6,7 +6,7 @@ import { Briefcase01Icon } from '@hugeicons/core-free-icons'
 
 export default function Companies({ questionCounts = null, isStatsLoading = false }) {
   return (
-    <section id="companies-section" className="theme-content-background scroll-mt-20 py-24">
+    <section id="companies-section" className="theme-content-background scroll-mt-20 py-12 md:py-16">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">

@@ -101,7 +101,7 @@ export default function FloatingQuizCards() {
     >
       <div className="quiz-row-mask overflow-hidden">
         {/* The container's own edge already sits inside the 40px rails (main
-            has px-12, rails are w-10), so px-4 is just breathing room. */}
+            has px-8, rails are w-10), so px-4 is just breathing room. */}
         <div className="flex w-full items-start justify-center px-4">
           {CARDS.map((card, i) => {
             const layout = LAYOUT[i];

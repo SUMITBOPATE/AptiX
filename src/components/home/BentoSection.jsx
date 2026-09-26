@@ -6,8 +6,8 @@ const iconTile = 'w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:bor
 
 export default function BentoSection() {
   return (
-    <section className="theme-content-background px-4 py-24 sm:px-6 md:px-12">
-      <Reveal className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8">
+    <section className="theme-content-background py-12 md:py-16">
+      <Reveal className="max-w-6xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-[2px] w-6 bg-lime-500" aria-hidden="true" />
           <h2 className="font-semibold text-sm uppercase tracking-[0.2em] text-accent-ink">Mastery Pillars</h2>

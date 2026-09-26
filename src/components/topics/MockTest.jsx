@@ -8,7 +8,7 @@ export default function MockTest({ questionCount = null, isStatsLoading = false 
   const hasQuestionCount = isStatsLoading || questionCount !== null;
 
   return (
-    <section id="mock-test-section" className="theme-content-background scroll-mt-20 py-12">
+    <section id="mock-test-section" className="theme-content-background scroll-mt-20 py-12 md:py-16">
       <Reveal className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
