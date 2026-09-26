@@ -1,32 +1,20 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Book04Icon } from '@hugeicons/core-free-icons'
 import Button from '../ui/Button'
-import { getCompanyTone } from '../../lib/companyTones'
 import Spinner from '../ui/Spinner';
 
 export default function CompanyCard({ company, questionCount = null, isStatsLoading = false }) {
-  const { name, fullName, description, slug, monogram } = company;
+  const { name, fullName, description, slug } = company;
 
   // Plain surface, matching TopicCard directly above in the page. The card was
   // previously tinted per company, which made two structurally identical
-  // adjacent card grids look like different components. The monogram chip is
-  // the only per-company colour now.
+  // adjacent card grids look like different components. The monogram chip was
+  // then dropped here too, so the card is just the fields a visitor scans for.
   const isComingSoon = questionCount === 0;
   const showQuestionCount = !isComingSoon && (isStatsLoading || questionCount !== null);
 
   return (
     <article className="motion-card group flex h-full flex-col rounded-xl border border-[#EAEAEA] bg-white p-6 dark:border-border dark:bg-surface">
-      {/* Monogram, not the company name. "Cognizant" and "LTIMindtree" could
-          never fit legibly in a 56px badge; the mark is now always <= 4 chars.
-          Tracking is POSITIVE: this is 14px uppercase, and the inverse-of-size
-          rule asks for looser tracking on small text, not tighter. */}
-      <div
-        className={`mb-4 flex h-14 w-14 items-center justify-center rounded-lg text-sm font-bold uppercase tracking-[0.06em] ${getCompanyTone(company.color).monogram}`}
-        aria-hidden="true"
-      >
-        {monogram ?? name.slice(0, 3).toUpperCase()}
-      </div>
-
       {/* Title — 20px/600, matching TopicCard. Was 20px/700, which read
           heavier than the neighbouring 24px/600 topic titles. */}
       <h3 className="text-xl font-semibold leading-snug tracking-[-0.01em] text-text-strong">
@@ -59,8 +47,7 @@ export default function CompanyCard({ company, questionCount = null, isStatsLoad
 
         {isComingSoon ? (
           /* A single "Coming Soon" signal. It used to appear twice — as an
-             absolutely-positioned badge that could also collide with the
-             monogram on a narrow card, and again on the disabled button. */
+             absolutely-positioned badge, and again on the disabled button. */
           <Button
             disabled
             showArrow={false}

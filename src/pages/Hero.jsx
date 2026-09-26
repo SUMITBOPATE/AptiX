@@ -28,7 +28,7 @@ export default function Hero({ onScrollTo }) {
               replaces the manual <br>: the two sentences are separate blocks so
               the intended break is kept, but each can now wrap and re-balance
               instead of overflowing on a narrow phone. */}
-          <h1 className="mt-8 text-balance text-[clamp(1.875rem,5.2vw,3.75rem)] leading-[1.14] tracking-[-0.005em] [font-optical-sizing:auto] [font-weight:600] text-gray-900 md:leading-[1.06] md:tracking-[-0.025em]">
+          <h1 className="mt-8 text-balance text-[clamp(1.875rem,5.2vw,3.75rem)] leading-[1.14] tracking-[-0.005em] [font-weight:600] text-gray-900 md:leading-[1.06] md:tracking-[-0.025em]">
             <span className="block">
               Level Up Your <span className="text-accent-ink italic">Aptitude.</span>
             </span>

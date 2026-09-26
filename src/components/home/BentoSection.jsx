@@ -10,7 +10,11 @@ export default function BentoSection() {
       <Reveal className="max-w-6xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-[2px] w-6 bg-lime-500" aria-hidden="true" />
-          <h2 className="font-semibold text-sm uppercase tracking-[0.2em] text-accent-ink">Mastery Pillars</h2>
+          {/* A label, not a heading. As an <h2> at 14px it was the parent of
+              four 24px/700 <h3>s below it — a hierarchy where every child
+              outranked its parent. Companies.jsx already styles this eyebrow
+              as a span; matching that keeps the two sections consistent. */}
+          <span className="font-semibold text-sm uppercase tracking-[0.2em] text-accent-ink">Mastery Pillars</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -36,7 +40,7 @@ export default function BentoSection() {
                 <HugeiconsIcon icon={Activity02Icon} className="hover-scale-icon w-6 h-6 text-accent-ink" aria-hidden="true" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Analytics</h3>
-              <p className="text-gray-600 text-sm">Real-time performance metrics tracking your speed, accuracy, and percentile rank.</p>
+              <p className="text-gray-600 text-sm leading-[1.5]">Real-time performance metrics tracking your speed, accuracy, and percentile rank.</p>
             </div>
             {/* Was a hardcoded "Accuracy: 78%" with a three-quarter-filled bar.
                 A precise number on a marketing page reads as a real measurement.
@@ -67,7 +71,7 @@ export default function BentoSection() {
                 Adaptive
               </div>
               <h3 className="text-2xl font-bold mb-2 break-words">Personalization</h3>
-              <p className="text-white/80 text-sm max-w-sm break-words leading-relaxed">Our adaptive algorithm identifies your weak zones and creates a custom difficulty curve tailored to your learning pace.</p>
+              <p className="text-white/80 text-sm max-w-sm break-words leading-[1.5]">Our adaptive algorithm identifies your weak zones and creates a custom difficulty curve tailored to your learning pace.</p>
             </div>
             <div className="hidden md:block shrink-0">
               <div className="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center">

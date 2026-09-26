@@ -13,7 +13,7 @@ export default function Companies({ questionCounts = null, isStatsLoading = fals
             <div className="h-[2px] w-6 bg-lime-500"></div>
             <span className="font-semibold text-sm uppercase tracking-[0.2em] text-accent-ink">Placement Partners</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+          <h2 className="text-3xl font-semibold text-gray-900 mb-2 leading-[1.15] tracking-tight">
             Company Specific Tests
           </h2>
           <p className="text-gray-600 text-lg">

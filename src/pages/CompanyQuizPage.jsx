@@ -314,13 +314,13 @@ export default function CompanyQuizPage() {
             <span className="text-xs font-medium text-text-muted capitalize">{categoryDisplayNames[categorySlug]}</span>
           </div>
 
-          <p className="text-[0.7rem] font-bold tracking-[0.08em] text-text-muted uppercase m-0">
+          <p className="text-xs font-bold tracking-[0.08em] text-text-muted uppercase m-0">
             QUESTION {currentIndex + 1} OF {total}
           </p>
 
-          <h2 className="text-[1rem] font-medium text-text-strong leading-relaxed m-0">
+          <p className="text-base font-medium text-text-strong leading-relaxed m-0">
             {currentQuestion.question}
-          </h2>
+          </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
             {[currentQuestion.option_a, currentQuestion.option_b, currentQuestion.option_c, currentQuestion.option_d].map((option, i) => {
@@ -413,7 +413,7 @@ export default function CompanyQuizPage() {
             Previous
           </button>
 
-          <span className="text-[0.75rem] text-text-muted tabular-nums">
+          <span className="text-xs text-text-muted tabular-nums">
             {currentIndex + 1} / {total}
           </span>
 

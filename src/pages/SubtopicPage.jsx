@@ -117,7 +117,7 @@ function SubtopicPage() {
                 <span className="relative ml-2.5 px-1.5 py-0.5 rounded-4xl bg-lime-200 dark:bg-lime-400/15 dark:text-lime-300 dark:border dark:border-lime-400/10 text-xs font-medium text-gray-600">
                   0 Attempted
                 </span>
-                <p className="text-sm text-gray-600 dark:text-text-muted font-light mt-0.5">
+                <p className="text-sm text-gray-600 dark:text-text-muted font-normal mt-0.5">
                   Practice questions from multiple categories in a real test environment
                 </p>
               </div>

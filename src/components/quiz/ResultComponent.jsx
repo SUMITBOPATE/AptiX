@@ -140,7 +140,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                       {isCorrect ? (
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-3 h-3 text-green-600" />
                       ) : isNA ? (
-                        <span className="text-[0.6rem] font-bold text-amber-700">NA</span>
+                        <span className="text-xs font-bold text-amber-700">NA</span>
                       ) : (
                         <HugeiconsIcon icon={CancelCircleIcon} className="w-3 h-3 text-red-600" />
                       )}

@@ -41,10 +41,10 @@ function Topics() {
       className="theme-content-background scroll-mt-20 pt-12 md:pt-16 text-gray-800 dark:text-text"
     >
       <div className="max-w-6xl mx-auto mb-8">
-        <h2 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
+        <h2 className="text-3xl font-semibold leading-[1.15] tracking-tight text-gray-900">
           Topics
         </h2>
-        <p className="text-xl text-gray-600 mb-4 max-w-3xl">
+        <p className="text-base leading-[1.6] text-gray-600 md:text-xl max-w-[62ch]">
           Explore various topics to enhance your aptitude skills and ace your exams.
         </p>
       </div>

@@ -124,7 +124,7 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
               </div>
             </div>
 
-            <div className="flex justify-between text-[0.6875rem] text-text-muted">
+            <div className="flex justify-between text-xs text-text-muted">
               <span>{minQuestions}</span><span>{maxQuestions}</span>
             </div>
           </div>
@@ -135,12 +135,12 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
               <ClockIcon />
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[0.6875rem] text-text-muted font-medium uppercase tracking-[0.04em]">Estimated Time</span>
+              <span className="text-xs text-text-muted font-medium uppercase tracking-[0.04em]">Estimated Time</span>
               <span className="text-[0.9375rem] font-bold text-primary-strong">{estimatedTime}</span>
             </div>
             <div className="w-px h-7 bg-primary opacity-25 mx-auto" />
             <div className="flex flex-col gap-0.5">
-              <span className="text-[0.6875rem] text-text-muted font-medium uppercase tracking-[0.04em]">Questions</span>
+              <span className="text-xs text-text-muted font-medium uppercase tracking-[0.04em]">Questions</span>
               <span className="text-[0.9375rem] font-bold text-primary-strong">{questionCount} Q</span>
             </div>
           </div>
@@ -167,13 +167,13 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
                       }`}
                     >
                       {diff.recommended && (
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-lime-400 text-accent-contrast text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-lime-400 text-accent-contrast text-xs font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
                           Recommended
                         </span>
                       )}
                       <HugeiconsIcon icon={diff.icon} className="w-3 h-3" />
                       <span className="text-[0.8125rem] font-semibold text-text-strong leading-snug">{diff.label}</span>
-                      <span className="text-[0.6875rem] text-text-muted leading-snug">{diff.desc}</span>
+                      <span className="text-xs text-text-muted leading-snug">{diff.desc}</span>
                     </button>
                   );
                 })}

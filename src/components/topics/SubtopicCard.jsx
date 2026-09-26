@@ -23,7 +23,7 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
         }`}
       >
         {isComingSoon && (
-          <span className="absolute right-3 top-3 z-10 rounded-full bg-amber-100 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
+          <span className="absolute right-3 top-3 z-10 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
             Coming Soon
           </span>
         )}
@@ -33,7 +33,13 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
           </div>
 
           <div className="flex-1 min-w-0 relative">
-            <h3 className={`text-base font-semibold text-gray-900 leading-tight truncate ${isComingSoon ? 'pr-24' : 'pr-12'}`}>
+            <h3
+              /* truncate keeps the row one line high, but it hides the name —
+                 and the name is the whole point of the card. title puts the
+                 full string back within reach on hover and on tap. */
+              title={subtopic.name}
+              className={`text-base font-semibold text-gray-900 leading-tight truncate ${isComingSoon ? 'pr-24' : 'pr-12'}`}
+            >
               {name}
             </h3>
             {!isComingSoon && (
@@ -47,7 +53,7 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
                 )}
               </span>
             )}
-            <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-snug">
+            <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-[1.5]">
               {description}
             </p>
           </div>
