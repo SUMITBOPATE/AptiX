@@ -15,9 +15,9 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
   const progress = (correct / total) * circumference;
 
   return (
-    <div className="theme-page min-h-screen bg-white flex flex-col">
+    <div className="theme-page min-h-dvh bg-white flex flex-col">
       {/* Header - Simple white with border */}
-      <div className="border-b border-gray-200 dark:border-[#343B29] px-6 py-6 bg-white">
+      <div className="border-b border-gray-200 dark:border-border px-6 py-6 bg-white">
         <h1 className="text-xl font-semibold text-gray-800 text-center">Quiz Complete</h1>
         <p className="text-sm text-gray-500 text-center mt-1">Here's your performance summary</p>
       </div>
@@ -33,21 +33,22 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                 cy="88"
                 r={radius}
                 fill="none"
-                stroke="#f3f4f6"
+                stroke="currentColor"
                 strokeWidth="12"
+                className="text-border"
               />
-              {/* Progress circle - lime color */}
+              {/* Progress circle - accent, so it adapts per theme */}
               <circle
                 cx="88"
                 cy="88"
                 r={radius}
                 fill="none"
-                stroke="#84cc16"
+                stroke="currentColor"
                 strokeWidth="12"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={circumference - progress}
-                className="transition-all duration-1000 ease-out"
+                className="ring-reveal text-accent-ink"
               />
             </svg>
 
@@ -100,7 +101,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
         <div className="max-w-2xl mx-auto flex gap-3">
           <button
             onClick={onRestart}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-white rounded-lg font-medium text-sm hover:bg-lime-500 transition"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-accent-contrast rounded-lg font-medium text-sm hover:bg-lime-300 t-interactive"
           >
             <HugeiconsIcon icon={RefreshIcon} className="w-4 h-4" />
             Retry Quiz
@@ -129,7 +130,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                 <div
                   key={index}
                   onClick={() => onReview(index)}
-                  className="p-3 rounded-lg border border-gray-200 dark:border-[#343B29] bg-white cursor-pointer transition-colors duration-200 hover:border-lime-300 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 hover:shadow-sm"
+                  className="p-3 rounded-lg border border-gray-200 dark:border-border bg-white cursor-pointer transition-colors duration-200 hover:border-lime-300 dark:hover:bg-surface-2 dark:hover:border-lime-400/20 hover:shadow-sm"
                 >
                   <div className="flex items-start gap-3">
                     {/* Status Icon - Simple circle */}

@@ -21,7 +21,7 @@ export default function MockTestPage() {
   };
 
   return (
-    <div className="theme-page min-h-screen p-4 pt-6 text-gray-800 dark:text-text">
+    <div className="theme-page min-h-dvh p-4 pt-6 text-gray-800 dark:text-text">
       <div className="max-w-5xl mx-auto">
         <BackButton onClick={() => navigate('/')} />
         <div className="mt-6 bg-white dark:bg-surface border border-gray-200 dark:border-border rounded-xl p-6">

@@ -1,101 +1,80 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { Book04Icon, TargetIcon } from '@hugeicons/core-free-icons'
+import { Book04Icon } from '@hugeicons/core-free-icons'
+import Button from '../ui/Button'
+import { getCompanyTone } from '../../lib/companyTones'
+import Spinner from '../ui/Spinner';
 
-export default function CompanyCard({ company, questionCount = null }) {
-  const { name, fullName, description, difficulty, slug } = company;
+export default function CompanyCard({ company, questionCount = null, isStatsLoading = false }) {
+  const { name, fullName, description, slug, monogram } = company;
 
-  // Company color mapping
-  const colorClasses = {
-    blue: 'bg-blue-50 border-blue-100',
-    red: 'bg-red-50 border-red-100',
-    purple: 'bg-purple-50 border-purple-100',
-    indigo: 'bg-indigo-50 border-indigo-100',
-  };
-
-  const logoColorClasses = {
-    blue: 'bg-blue-100 text-blue-700',
-    red: 'bg-red-100 text-red-700',
-    purple: 'bg-purple-100 text-purple-700',
-    indigo: 'bg-indigo-100 text-indigo-700',
-  };
-
-  const companyColor = company.color || 'blue';
+  // Plain surface, matching TopicCard directly above in the page. The card was
+  // previously tinted per company, which made two structurally identical
+  // adjacent card grids look like different components. The monogram chip is
+  // the only per-company colour now.
   const isComingSoon = questionCount === 0;
-
-  const practiceButton = (
-    <button
-      disabled={isComingSoon}
-      className={`w-full px-6 py-3 font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-        isComingSoon
-          ? 'cursor-not-allowed bg-gray-200 text-gray-500 dark:bg-white/10 dark:text-gray-400'
-          : 'bg-lime-400 text-white dark:text-[#17210a] shadow-md shadow-lime-500/20 hover:bg-lime-500 hover:scale-[1.02] active:scale-95'
-      }`}
-    >
-      {isComingSoon ? 'Coming Soon' : 'Start Practice'}
-      {!isComingSoon && (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      )}
-    </button>
-  );
+  const showQuestionCount = !isComingSoon && (isStatsLoading || questionCount !== null);
 
   return (
-    <div className={`motion-card group relative h-full bg-white dark:bg-surface rounded-xl p-6 border border-[#EAEAEA] dark:border-border ${colorClasses[companyColor]}`}>
-      {isComingSoon && (
-        <span className="absolute right-4 top-4 rounded-full bg-amber-100 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
-          Coming Soon
-        </span>
-      )}
-      {/* Company Logo / Badge */}
-      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-lg ${logoColorClasses[companyColor]} mb-4 font-bold text-xl`}>
-        {name}
+    <article className="motion-card group flex h-full flex-col rounded-xl border border-[#EAEAEA] bg-white p-6 dark:border-border dark:bg-surface">
+      {/* Monogram, not the company name. "Cognizant" and "LTIMindtree" could
+          never fit legibly in a 56px badge; the mark is now always <= 4 chars.
+          Tracking is POSITIVE: this is 14px uppercase, and the inverse-of-size
+          rule asks for looser tracking on small text, not tighter. */}
+      <div
+        className={`mb-4 flex h-14 w-14 items-center justify-center rounded-lg text-sm font-bold uppercase tracking-[0.06em] ${getCompanyTone(company.color).monogram}`}
+        aria-hidden="true"
+      >
+        {monogram ?? name.slice(0, 3).toUpperCase()}
       </div>
 
-      {/* Company Name */}
-      <h3 className="text-xl font-bold text-gray-900 mb-1">
+      {/* Title — 20px/600, matching TopicCard. Was 20px/700, which read
+          heavier than the neighbouring 24px/600 topic titles. */}
+      <h3 className="text-xl font-semibold leading-snug tracking-[-0.01em] text-text-strong">
         {name}
       </h3>
 
-      {/* Full Name */}
-      <p className="text-sm text-gray-600 mb-3">
-        {fullName}
-      </p>
+      {/* Only present where it expands an acronym (TCS, HCL). For Cognizant,
+          Infosys and Wipro it was just the name plus a legal suffix. */}
+      {fullName && (
+        <p className="mt-1 text-sm leading-snug text-text-muted">{fullName}</p>
+      )}
 
-      {/* Description */}
-      <p className="text-base text-gray-700 mb-6 leading-relaxed h-16 overflow-hidden line-clamp-3">
+      {/* min-h matches TopicCard: exactly three lines at 16px x 1.6. The old
+          4.5rem reserved less than the clamp actually occupied. */}
+      <p className="mt-2 min-h-[4.8rem] text-base leading-[1.6] text-text line-clamp-3">
         {description}
       </p>
 
-      {/* Stats */}
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={Book04Icon}
-            className="w-4 h-4 text-lime-500"
-          />
-          <span className="text-xs font-medium text-gray-600">
-            {questionCount === null ? 'Loading…' : `${questionCount} Questions`}
-          </span>
-        </div>
+      <div className="mt-auto pt-5">
+        {showQuestionCount && (
+          <p className="mb-3 flex items-center gap-2 text-sm font-medium text-text-muted">
+            <HugeiconsIcon
+              icon={Book04Icon}
+              className="h-4 w-4 text-accent-ink"
+              aria-hidden="true"
+            />
+            {isStatsLoading ? <Spinner size="sm" /> : `${questionCount} questions`}
+          </p>
+        )}
 
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={TargetIcon}
-            className="w-4 h-4 text-lime-500"
-          />
-          <span className="text-xs font-medium text-gray-600">{difficulty}</span>
-        </div>
+        {isComingSoon ? (
+          /* A single "Coming Soon" signal. It used to appear twice — as an
+             absolutely-positioned badge that could also collide with the
+             monogram on a narrow card, and again on the disabled button. */
+          <Button
+            disabled
+            showArrow={false}
+            className="w-full cursor-not-allowed bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-400"
+          >
+            Coming Soon
+          </Button>
+        ) : (
+          <Button to={`/practice/company/${slug}`} size="sm" className="w-full">
+            Start Practice
+            <span className="sr-only"> — {name}</span>
+          </Button>
+        )}
       </div>
-
-      {/* CTA Button */}
-      {isComingSoon ? practiceButton : (
-        <Link to={`/practice/company/${slug}`} className="w-full">
-          {practiceButton}
-        </Link>
-      )}
-    </div>
+    </article>
   );
 }

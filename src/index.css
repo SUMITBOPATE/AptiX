@@ -10,119 +10,23 @@
   border-radius: calc(var(--radius) + 16px);
 }
 
-/* Vertical dotted lines */
-.slant-line-left {
-  position: fixed;
-  left: 3rem;
-  top: 0;
-  bottom: 0;
-  width: 1.8px;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
-
-.slant-line-right {
-  position: fixed;
-  right: 3rem;
-  top: 0;
-  bottom: 0;
-  width: 1.8px;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
-
-/* Boundary dotted lines (screen edge) */
-.slant-line-left-edge {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 1.8px;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
-
-.slant-line-right-edge {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 1.8px;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
-
-/* Horizontal slanting lines between vertical lines */
-.slant-h-line {
-  position: fixed;
-  height: 1px;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
-
-/* Horizontal lines in left lane (between edge and inner line) */
-.slant-h-line-left {
-  position: fixed;
-  left: 0;
-  height: 1px;
-  width: 3rem;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
-
-/* Horizontal lines in right lane (between inner line and edge) */
-.slant-h-line-right {
-  position: fixed;
-  right: 0;
-  height: 1px;
-  width: 3rem;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent 0px,
-    transparent 6px,
-    rgba(163, 163, 163, 0.3) 6px,
-    rgba(163, 163, 163, 0.3) 12px
-  );
-}
+/* The .slant-line-* / .slant-h-line-* families were superseded by
+   .slanted-rail-* (see below) and had no remaining references. */
 
 @theme {
   /* Colors */
   --color-primary: oklch(84.1% 0.238 128.85);
   --color-primary-strong: rgb(24, 121, 89);
   --color-primary-soft: oklch(76.8% 0.233 130.85);
-  --color-text: rgb(115, 115, 115);
-  --color-text-strong: rgb(57, 57, 57);
-  --color-text-muted: rgb(163, 163, 163);
+  /* Ink for text and icons ON a light surface. lime-500/600 as *text* is only
+     1.98:1 on white; this is 4.99:1. Use `text-accent-ink`, never `text-primary`. */
+  --color-accent-ink: #4d7c0f;
+  /* Dark ink for text/label content sitting on a lime-400 fill. 11.07:1, and it
+     matches what dark mode already used, so the CTA reads identically in both. */
+  --color-accent-contrast: #17210a;
+  --color-text: #4b5563;
+  --color-text-strong: rgb(31, 31, 31);
+  --color-text-muted: #6b7280;
   --color-bg: rgb(250, 250, 250);
   --color-surface: rgb(245, 245, 245);
   --color-surface-2: rgb(237, 237, 237);
@@ -139,6 +43,18 @@
 
   /* Font */
   --font-sans: "Funnel Sans", "Manrope", "Inter", system-ui, sans-serif;
+
+  /* ---- Motion scale -------------------------------------------------
+     Named so no component invents its own curve or duration. Curves are
+     the strong custom easings; built-in `ease` reads too weak on UI. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --duration-press: 120ms; /* :active feedback                      */
+  --duration-fast: 160ms; /* hovers, colour shifts                 */
+  --duration-base: 200ms; /* popovers, tooltips, reveals           */
+  --duration-slow: 280ms; /* larger surfaces; still under the 300ms cap */
 }
 
 *,
@@ -151,38 +67,245 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Smooth scrolling is a vestibular trigger. Keep instant jumps for anyone who
+   has asked for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   margin: 0;
   color: var(--color-text);
   background: var(--color-bg);
   font-family: var(--font-sans);
-  transition: background-color 180ms ease, color 180ms ease;
+  transition: background-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out);
+}
+
+/* Loading spinner.
+   Tailwind's `animate-spin` emits an `animation` shorthand, so a separate
+   `animation-duration` longhand loses to it on ordering. Owning the whole
+   animation here makes the faster-than-default rotation deterministic — the
+   point being that a brisk spinner measurably shortens *perceived* wait at the
+   same real load time. */
+.loading-spinner {
+  animation: spin 800ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation: none;
+  }
+}
+
+/* Skip link — off-screen until focused. `top` clears the fixed 65px navbar
+   (h-16 + border-b); at 0.75rem it sat on top of the logo instead. */
+.skip-link {
+  position: absolute;
+  top: 4.75rem;
+  left: 1rem;
+  z-index: 60;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--color-lime-400);
+  color: var(--color-accent-contrast);
+  font-size: 0.875rem;
+  font-weight: 700;
+  /* Must clear `top` (4.75rem) as well as its own height, or ~14px of the
+     chip stays on screen. 6rem of travel puts it at -58px, safely off. */
+  transform: translateY(calc(-100% - 6rem));
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+/* ---- Touch hygiene ---------------------------------------------------
+   iOS fires a grey flash on tap and starts a text selection on long-press.
+   Both read as bugs on buttons and cards. */
+button,
+a,
+label,
+summary,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role='button'],
+label {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .theme-content-background {
   background-color: var(--color-bg);
 }
 
+/* Scroll reveal.
+   Elements are visible by default and only hidden once JS has confirmed it
+   can reveal them again (data-armed). If the bundle fails to load or
+   IntersectionObserver never fires, the content is still on the page instead
+   of stuck at opacity 0. */
 .scroll-reveal {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: calc(var(--index, 0) * 80ms);
+  opacity: 1;
+  transform: none;
 }
 
-.scroll-reveal[data-visible="true"] {
+.scroll-reveal[data-armed='true'] {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+  transition-delay: calc(var(--index, 0) * 40ms);
+}
+
+.scroll-reveal[data-armed='true'][data-visible='true'] {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 .motion-card {
   box-shadow: 0 0 0 rgb(0 0 0 / 0);
-  transition: box-shadow 200ms ease, transform 200ms ease;
+  transition: box-shadow var(--duration-base) var(--ease-out);
 }
 
-.motion-card:hover { box-shadow: 0 2px 8px rgb(0 0 0 / 0.04); }
-button:active { transform: scale(0.98); }
+/* Surface colour/border transitions for non-interactive cards. Opt-in, because
+   the blanket rule this replaced used to cover every element implicitly. */
+.surface {
+  transition-property: background-color, border-color, box-shadow, color;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+}
+
+/* Explicit replacement for `transition-all` on interactive controls. Bounded to
+   the properties these actually change, and it includes translate/scale because
+   Tailwind v4 emits those as standalone CSS properties rather than transform. */
+.t-interactive {
+  transition-property: background-color, border-color, color, box-shadow, opacity,
+    transform, translate, scale;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+}
+
+/* Theme toggle.
+   Two clocks on one element, which a single Tailwind `transition-[...]` +
+   `duration-[...]` pair cannot express (one property list gets one duration):
+   the surface colour eases over --duration-slow so the state change is legible,
+   while the press scale rides --duration-press so the control answers the
+   finger immediately. Previously both rode a 250ms arbitrary value, which made
+   the press feel sluggish.
+   The knob and its icons are here too because `motion-reduce:` cannot reach the
+   knob's inline `transform`. */
+.theme-toggle {
+  transition-property: background-color, border-color, transform;
+  transition-duration: var(--duration-slow), var(--duration-slow),
+    var(--duration-press);
+  transition-timing-function: var(--ease-out);
+}
+
+.theme-toggle:active {
+  transform: scale(0.97);
+}
+
+.theme-toggle-knob {
+  /* top 4px centres a 20px knob in the 28px track; at 3px the gaps were 3/5. */
+  top: 4px;
+  transition-property: transform;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out);
+}
+
+.theme-toggle-icon {
+  transition-property: opacity, rotate, scale;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the opacity cross-fade — it carries the state change — and drop every
+     transform: no knob slide, no icon rotation, no press scale. */
+  .theme-toggle,
+  .theme-toggle-knob,
+  .theme-toggle-icon {
+    transition-duration: 1ms;
+  }
+
+  .theme-toggle:active {
+    transform: none;
+  }
+
+  .theme-toggle-icon {
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+/* One-time score ring. Legitimately longer than the UI budget — it is a
+   first-time result moment, and it draws via stroke-dashoffset rather than
+   transform, so it needs its own transition-property list. */
+.ring-reveal {
+  transition-property: stroke-dashoffset;
+  transition-duration: 1000ms;
+  transition-timing-function: var(--ease-in-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-reveal {
+    transition: none;
+  }
+}
+
+/* Icon hover-scale, gated behind a real pointer. Touch fires :hover on tap, so
+   an ungated scale replays as a flicker every time someone taps a card. */
+@media (hover: hover) and (pointer: fine) {
+  .hover-scale-icon {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .group:hover .hover-scale-icon {
+    transform: scale(1.05);
+  }
+}
+
+/* Gate hover behind a real pointer — touch fires a false :hover on tap. */
+@media (hover: hover) and (pointer: fine) {
+  .motion-card:hover {
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.04);
+  }
+
+  /* 4% black is invisible on a dark surface. */
+  .dark .motion-card:hover {
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.45);
+  }
+}
+
+/* Press feedback. One definition, one scale value, applied intentionally.
+   transform rides on the press clock; surface colours come along so a pressed
+   button doesn't snap its background while the scale eases. */.press {
+  transition-property: transform, background-color, border-color, color,
+    box-shadow, opacity;
+  transition-duration: var(--duration-press);
+  transition-timing-function: var(--ease-out);
+}
+
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Reduced motion still needs to confirm the press, so swap movement for a
+   non-motion cue rather than dropping the feedback entirely. */
+@media (prefers-reduced-motion: reduce) {
+  .press:active {
+    transform: none;
+    opacity: 0.75;
+  }
+}
 
 .ambient-blob {
   position: fixed;
@@ -200,22 +323,66 @@ button:active { transform: scale(0.98); }
   to { transform: translate3d(-42%, 8%, 0) scale(1.06); }
 }
 
+/* Softens the outer cards' outer edges so the row reads as a deck receding
+   rather than as three or five hard rectangles. Sized as a percentage of the
+   row, which is now the content container rather than the viewport. */
+.quiz-row-mask {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .scroll-reveal { opacity: 1; transform: none; transition: none; }
-  .ambient-blob { animation: none; }
+  /* Must match the [data-armed] specificity, otherwise the armed rule keeps
+     the element at opacity 0 while transition is off — permanently blank. */
+  .scroll-reveal,
+  .scroll-reveal[data-armed='true'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* Keep the fade — it carries the open/closed state change — but drop the
+     panel's movement. The ID selector outranks the Tailwind translate/scale
+     utilities, so no !important is needed. */
+  #mobile-menu {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  .ambient-blob {
+    animation: none;
+  }
 }
 
 /* Theme tokens keep the existing component structure intact. */
 .dark {
   color-scheme: dark;
-  --color-text: #a8ad9d;
+  --color-text: #b0b5a4;
   --color-text-strong: #f5f5ee;
-  --color-text-muted: #7d8374;
-  --color-bg: #14170f;
-  --color-surface: #1b2014;
-  --color-surface-2: #22291a;
-  --color-border: #343b29;
+  /* Lightened from #a3a996, which only cleared 4.5:1 on --color-bg. The surface
+     ramp below is now wide enough that muted text has to hold 4.5:1 on the
+     LIGHTEST surface too, which #a3a996 and #a3a996 both failed. */
+  --color-text-muted: #a3a996;
+  --color-bg: #12150e;
+  --color-surface: #252c1c;
+  --color-surface-2: #313925;
+  --color-border: #48523a;
   --color-primary-strong: #a3e635;
+  --color-accent-ink: #bef264;
+  /* --color-accent-contrast is deliberately NOT redeclared here: lime-400
+     stays lime-400 in both themes, so the dark ink on it is the same value. */
   --color-danger: #f87171;
   --color-success: #86efac;
   --shadow-soft: 0 8px 24px rgb(0 0 0 / 0.22);
@@ -223,56 +390,84 @@ button:active { transform: scale(0.98); }
 }
 
 /* Legacy neutral utilities are used throughout the existing UI. These mappings
-   make every current page theme-aware while new work can use dark: classes. */
-.dark .theme-page { background-color: #14170f; }
-.dark .theme-navbar { background-color: #14170f; }
-.dark .bg-white { background-color: #1b2014; }
-.dark .bg-gray-50 { background-color: #1b2014; }
-.dark .bg-gray-100 { background-color: #22291a; }
+   make every current page theme-aware while new work can use dark: classes.
+
+   Every colour below is a `var(--color-*)` reference, never a hex literal.
+   They used to repeat the token values, which meant a theme change had to be
+   applied in two places and the copies silently drifted out of sync. Referencing
+   the token makes a palette change a single edit. */
+.dark .theme-page { background-color: var(--color-bg); }
+.dark .theme-navbar { background-color: var(--color-bg); }
+.dark .bg-white { background-color: var(--color-surface); }
+.dark .bg-gray-50 { background-color: var(--color-surface); }
+.dark .bg-gray-100 { background-color: var(--color-surface-2); }
 .dark .bg-gray-200 { background-color: rgb(255 255 255 / 0.07); }
 .dark .bg-gray-300 { background-color: rgb(255 255 255 / 0.12); }
-.dark .text-black, .dark .text-gray-900, .dark .text-gray-800, .dark .text-gray-700 { color: #f5f5ee; }
-.dark .text-gray-600, .dark .text-gray-500, .dark .text-gray-400, .dark .text-gray-300 { color: #a8ad9d; }
-.dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 { border-color: #343b29; }
-.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover, .dark .hover\:bg-gray-200:hover { background-color: #22291a; }
-.dark .hover\:border-gray-200:hover { border-color: #47523a; }
+.dark .text-black, .dark .text-gray-900, .dark .text-gray-800, .dark .text-gray-700 { color: var(--color-text-strong); }
+.dark .text-gray-600, .dark .text-gray-500, .dark .text-gray-400, .dark .text-gray-300 { color: var(--color-text); }
+.dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 { border-color: var(--color-border); }
+.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover, .dark .hover\:bg-gray-200:hover { background-color: var(--color-surface-2); }
+.dark .hover\:border-gray-200:hover { border-color: var(--color-border); }
 .dark .bg-lime-50 { background-color: rgb(77 124 15 / 0.18); }
 .dark .bg-lime-100 { background-color: rgb(101 163 13 / 0.22); }
 .dark .bg-lime-200 { background-color: rgb(132 204 22 / 0.27); }
 .dark .border-lime-200 { border-color: rgb(132 204 22 / 0.42); }
-.dark .text-lime-600, .dark .text-lime-700 { color: #bef264; }
-.dark .bg-lime-400, .dark .bg-lime-500 { color: #17210a; }
-.dark .bg-blue-50 { background-color: rgb(59 130 246 / 0.14); }
+.dark .text-lime-600, .dark .text-lime-700 { color: var(--color-accent-ink); }
+.dark .bg-lime-400, .dark .bg-lime-500 { color: var(--color-accent-contrast); }
 .dark .bg-blue-100 { background-color: rgb(59 130 246 / 0.22); }
-.dark .border-blue-100 { border-color: rgb(96 165 250 / 0.35); }
 .dark .bg-red-50, .dark .bg-\[\#fff5f5\], .dark .bg-\[\#fef2f2\] { background-color: rgb(127 29 29 / 0.24); }
 .dark .border-red-100, .dark .border-red-200, .dark .border-\[\#fca5a5\] { border-color: rgb(248 113 113 / 0.55); }
 .dark .text-red-600, .dark .text-\[\#dc2626\] { color: #fca5a5; }
 .dark .bg-green-50, .dark .bg-\[\#f0fdf4\] { background-color: rgb(20 83 45 / 0.30); }
 .dark .border-green-200, .dark .border-\[\#86efac\] { border-color: rgb(74 222 128 / 0.55); }
 .dark .text-green-600 { color: #86efac; }
-.dark input, .dark select, .dark textarea { color: #f5f5ee; background-color: #1b2014; border-color: #343b29; }
+
+/* Company-card monograms.
+   purple, indigo and cyan had no dark remaps at all, so three of the six
+   monograms kept a light pastel chip in dark mode while blue, red and green
+   were correctly retoned — the grid looked half-broken. The -800 text was also
+   unmapped for every tone, which put dark-blue text on a dark chip.
+
+   The matching -50 card surfaces and -100 borders were removed when the cards
+   went plain; the bare red/green -50 rules above stay because ResultComponent
+   still uses them. */
+.dark .bg-purple-100 { background-color: rgb(168 85 247 / 0.22); }
+.dark .text-purple-800 { color: #d8b4fe; }
+
+.dark .bg-indigo-100 { background-color: rgb(99 102 241 / 0.22); }
+.dark .text-indigo-800 { color: #a5b4fc; }
+
+.dark .bg-cyan-100 { background-color: rgb(6 182 212 / 0.22); }
+.dark .text-cyan-800 { color: #67e8f9; }
+
+.dark .bg-red-100 { background-color: rgb(239 68 68 / 0.22); }
+.dark .text-red-800 { color: #fca5a5; }
+.dark .bg-green-100 { background-color: rgb(34 197 94 / 0.22); }
+.dark .text-green-800 { color: #86efac; }
+.dark .text-blue-800 { color: #93c5fd; }
+.dark input, .dark select, .dark textarea { color: var(--color-text-strong); background-color: var(--color-surface); border-color: var(--color-border); }
 .dark input:focus, .dark select:focus, .dark textarea:focus { border-color: rgb(163 230 53 / 0.4); }
-.dark option { background: #1b2014; color: #f5f5ee; }
+.dark option { background: var(--color-surface); color: var(--color-text-strong); }
 .dark .slanted-rail-left, .dark .slanted-rail-right { opacity: 0.22; }
 
-/* Comfortable, unobtrusive scrolling for long study sessions. */
+/* Comfortable, unobtrusive scrolling for long study sessions. The dark track
+   referenced the bg token as a hex literal and drifted with the palette. */
 * { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
-.dark { scrollbar-color: #4a5340 #14170f; }
+.dark { scrollbar-color: #4a5340 var(--color-bg); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-.dark ::-webkit-scrollbar-track { background: #14170f; }
+.dark ::-webkit-scrollbar-track { background: var(--color-bg); }
 ::-webkit-scrollbar-thumb { background: #94a3b8; border: 3px solid transparent; background-clip: padding-box; border-radius: 999px; }
 .dark ::-webkit-scrollbar-thumb { background-color: #4a5340; }
 .dark ::-webkit-scrollbar-thumb:hover { background-color: #5c6850; }
 
 /* These areas sit above the generic legacy utility mappings. */
-.dark .theme-page, .dark .theme-navbar, .dark .theme-quiz-footer { background-color: #14170f; }
+.dark .theme-page, .dark .theme-navbar, .dark .theme-quiz-footer { background-color: var(--color-bg); }
 
-button, a, input, select, textarea, [class*="bg-"], [class*="border-"] {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, transform;
-  transition-duration: 180ms;
-  transition-timing-function: ease;
+button, a, input, select, textarea, summary, label, [role='button'] {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-out);
 }
 
 a {
@@ -296,13 +491,21 @@ a {
   transform: scaleX(0);
   transform-origin: left center;
   opacity: 0;
-  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+  transition: transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
 }
 
 .nav-link-slide:hover::after,
-.nav-link-slide:focus-visible::after {
+.nav-link-slide:focus-visible::after,
+.nav-link-slide[aria-current='true']::after {
   transform: scaleX(1);
   opacity: 1;
+}
+
+/* The active section should also read as selected without relying on the
+   underline alone. */
+.nav-link-slide[aria-current='true'] {
+  color: var(--color-accent-ink);
 }
 
 /* LEFT SIDE SLANTED RAIL */
@@ -354,11 +557,14 @@ a {
   border: 2.5px solid var(--color-primary);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.12s;
+  transition: transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-press) var(--ease-out);
 }
-.dialog-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 0 5px oklch(84.1% 0.238 128.85 / 0.18);
+@media (hover: hover) and (pointer: fine) {
+  .dialog-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 5px oklch(84.1% 0.238 128.85 / 0.18);
+  }
 }
 .dialog-slider::-moz-range-thumb {
   width: 20px;
@@ -380,12 +586,12 @@ a {
 
 /* Dark-mode slider thumb: a restrained olive surface with the lime accent. */
 .dark .dialog-slider::-webkit-slider-thumb {
-  background: #1b2014;
+  background: var(--color-surface);
   border-color: var(--color-primary);
   box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
 }
 .dark .dialog-slider::-moz-range-thumb {
-  background: #1b2014;
+  background: var(--color-surface);
   border-color: var(--color-primary);
   box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
 }
@@ -395,8 +601,8 @@ a {
 
 /* Keep the custom range track distinct from the olive dialog surface. */
 .dark .dialog-slider-track {
-  background-color: #343b29;
-  box-shadow: 0 0 0 1px #47523a;
+  background-color: var(--color-border);
+  box-shadow: 0 0 0 1px var(--color-border);
 }
 .dark .dialog-slider-progress {
   background-color: #a3e635;

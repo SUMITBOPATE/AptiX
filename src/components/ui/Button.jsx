@@ -1,27 +1,75 @@
+import { Link } from 'react-router-dom';
 import ArrowRight from '../../icons/ArrowRight';
 
-const Button = ({
-  onClick,
-  text = "Start Learning",
-  className = "",
-  disabled = false,
-  variant = "primary"
-}) => {
-  const variants = {
-    primary: "bg-lime-400 text-white font-bold rounded-xl shadow-lg shadow-lime-500/30 hover:scale-[1.02] active:scale-95 transition-all",
-  };
+// Note: do not add a `pointer-events` utility to the disabled state here. It
+// suppresses the not-allowed cursor that callers pass in, leaving the desktop
+// cursor to show whatever sits behind the button. A real <button disabled>
+// already ignores clicks, so the utility buys nothing.
+const BASE_CLASSES =
+  'press inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 font-bold ' +
+  'disabled:cursor-not-allowed disabled:opacity-50';
 
-  const baseClasses = "w-full flex items-center justify-center gap-2 py-4 px-8 font-semibold disabled:opacity-50 disabled:cursor-not-allowed";
-  const variantClasses = variants[variant] || variants.primary;
+// `text-accent-contrast` (#17210a) on the lime-400 fill is 11.07:1. The old
+// `text-white` pairing was 1.51:1 — the primary CTA was effectively unreadable.
+const VARIANTS = {
+  primary:
+    'bg-lime-400 text-accent-contrast hover:bg-lime-300 shadow-lg shadow-lime-500/25',
+  secondary:
+    'bg-transparent text-accent-ink border border-accent-ink/40 hover:bg-accent-ink/10 hover:border-accent-ink',
+  ghost:
+    'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-text dark:hover:bg-surface-2',
+};
+
+const SIZES = {
+  md: 'px-8 py-4',
+  sm: 'px-6 py-3',
+};
+
+/**
+ * Renders a real <Link> when `to` is set, otherwise a <button>. Callers must
+ * not wrap this in a <Link> — nesting interactive elements breaks keyboard
+ * and screen-reader semantics.
+ */
+const Button = ({
+  to,
+  onClick,
+  type = 'button',
+  children,
+  text,
+  className = '',
+  disabled = false,
+  variant = 'primary',
+  size = 'md',
+  showArrow = true,
+  ...rest
+}) => {
+  const classes = [
+    BASE_CLASSES,
+    SIZES[size] ?? SIZES.md,
+    VARIANTS[variant] ?? VARIANTS.primary,
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const content = (
+    <>
+      {children ?? text}
+      {showArrow && <ArrowRight className="h-5 w-5 shrink-0" />}
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} className={classes} {...rest}>
+        {content}
+      </Link>
+    );
+  }
 
   return (
-    <button
-      className={`${baseClasses} ${variantClasses} ${className}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {text}
-      <ArrowRight className="w-5 h-5" />
+    <button type={type} onClick={onClick} disabled={disabled} className={classes} {...rest}>
+      {content}
     </button>
   );
 };

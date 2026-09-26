@@ -9,6 +9,7 @@ import ResultComponent from "../components/quiz/ResultComponent.jsx"
 import { getUniqueQuestions } from '../utils/questions.js';
 import BackButton from '../components/ui/BackButton.jsx';
 import ExitQuizDialog from '../components/quiz/ExitQuizDialog.jsx';
+import LoadingState from '../components/ui/LoadingState';
 
 export default function QuizPage() {
   const location = useLocation();
@@ -241,17 +242,15 @@ export default function QuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col relative">
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
-          <p>Loading questions...</p>
-        </div>
+      <div className="min-h-dvh bg-bg flex flex-col relative">
+        <LoadingState label="Loading questions" className="flex-1" />
       </div>
     );
   }
 
   if (!currentQuestion) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col relative">
+      <div className="min-h-dvh bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
           <p>No questions found for this configuration.</p>
           <BackButton onClick={() => navigate(-1)} label="Go Back" />
@@ -286,7 +285,7 @@ export default function QuizPage() {
     || (attemptedAnswers[currentIndex]?.length ?? 0) > 0;
 
   return (
-    <div className="theme-page min-h-screen bg-white flex flex-col relative">
+    <div className="theme-page min-h-dvh bg-white flex flex-col relative">
       {/* Decorative rails */}
       <div className="pointer-events-none fixed inset-0 z-0 hidden md:block">
         <div className="absolute left-0 top-0 h-full w-10 border-l-[1.8px] border-r-[1.8px] border-dotted border-gray-200 dark:border-white/[0.05] slanted-rail-left" />
@@ -317,7 +316,7 @@ export default function QuizPage() {
       <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-4 gap-4 relative z-10">
 
         {/* Question card with footer */}
-        <div className="w-full min-h-[350px] sm:min-h-[400px] max-w-[700px] bg-white dark:bg-[#1B2014] border-1 border-dashed border-gray-200 dark:border-[#343B29] p-4 sm:p-6 flex flex-col gap-3">
+        <div className="w-full min-h-[350px] sm:min-h-[400px] max-w-[700px] bg-white dark:bg-surface border-1 border-dashed border-gray-200 dark:border-border p-4 sm:p-6 flex flex-col gap-3">
           {/* Subtopic & Difficulty - Mobile visible */}
           <div className="flex items-center gap-2 sm:hidden">
             <span className="text-xs font-medium text-text-muted">{subtopic?.name}</span>
@@ -393,7 +392,7 @@ export default function QuizPage() {
                 )}
                 <button
                   onClick={handleShowAnswer}
-                  className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 transition-all"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 t-interactive"
                 >
                   Show Answer
                 </button>
@@ -431,7 +430,7 @@ export default function QuizPage() {
           <button
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-text-strong hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-text-strong hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
           >
             <ArrowLeft className="w-4 h-4" />
             Previous
@@ -445,7 +444,7 @@ export default function QuizPage() {
             <button
               onClick={() => handleFinishQuiz()}
               disabled={!hasAttemptedCurrentQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-white bg-lime-500 hover:bg-lime-600 disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-accent-contrast bg-lime-400 hover:bg-lime-300 disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
             >
               Finish
               <ArrowRight className="w-4 h-4" />
@@ -454,7 +453,7 @@ export default function QuizPage() {
             <button
               onClick={handleNext}
               disabled={!hasAttemptedCurrentQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-primary hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-accent-ink hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
             >
               Next
               <ArrowRight className="w-4 h-4" />

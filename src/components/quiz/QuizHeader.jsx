@@ -28,7 +28,7 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
   };
 
   return (
-    <header className="theme-navbar flex items-center justify-between px-4 sm:px-10 h-14 border-b border-dashed border-gray-200 dark:border-[#343B29] bg-white sticky top-0 z-20">
+    <header className="theme-navbar flex items-center justify-between px-4 sm:px-10 h-14 border-b border-dashed border-gray-200 dark:border-border bg-white sticky top-0 z-20">
 
       {/* Left: Topic badge */}
       <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
               : i === currentIndex
               ? 'bg-primary'
               : 'bg-transparent border-[1.5px] border-border';
-          return <span key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${dotClass}`} />;
+          return <span key={i} className={`w-2.5 h-2.5 rounded-full t-interactive ${dotClass}`} />;
         })}
       </div>
 
@@ -70,10 +70,10 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
 
         <div className="w-px h-5 bg-border" />
 
-        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface transition-all">
+        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface t-interactive">
           <BookmarkIcon />
         </button>
-        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface transition-all">
+        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface t-interactive">
           <SettingsIcon />
         </button>
       </div>

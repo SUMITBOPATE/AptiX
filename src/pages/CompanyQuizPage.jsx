@@ -10,6 +10,7 @@ import ResultComponent from '../components/quiz/ResultComponent';
 import { getUniqueQuestions } from '../utils/questions.js';
 import BackButton from '../components/ui/BackButton.jsx';
 import ExitQuizDialog from '../components/quiz/ExitQuizDialog.jsx';
+import LoadingState from '../components/ui/LoadingState';
 
 export default function CompanyQuizPage() {
   const { slug, categorySlug } = useParams();
@@ -66,7 +67,20 @@ export default function CompanyQuizPage() {
     }
   }, [company, categorySlug, questionsCount]);
 
-  const filteredQuestions = allQuestions;
+  // Difficulty was being read from the dialog config and then never applied,
+  // so picking Hard or Medium in the setup dialog silently returned the same
+  // questions as Easy. Mirrors QuizPage's matchesDifficulty, minus the
+  // isCompanyQuestion escape hatch (everything here is already company-scoped).
+  const matchesDifficulty = (question) => {
+    const difficulty = selectedDifficulty?.toLowerCase();
+    return (
+      !difficulty ||
+      difficulty === 'all' ||
+      `${question?.difficulty || question?.level || ''}`.toLowerCase() === difficulty
+    );
+  };
+
+  const filteredQuestions = allQuestions.filter(matchesDifficulty);
   const total = filteredQuestions.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -87,34 +101,52 @@ export default function CompanyQuizPage() {
 
   const currentQuestion = filteredQuestions[currentIndex];
 
-  // Helper function to get option text from letter (A, B, C, D)
-  const getOptionTextFromLetter = (letter) => {
-    const options = {
-      'A': currentQuestion.option_a,
-      'B': currentQuestion.option_b,
-      'C': currentQuestion.option_c,
-      'D': currentQuestion.option_d,
-    };
-    return options[letter?.toUpperCase()];
+  // Difficulty filtering is new here, so a mismatch can now legitimately produce
+  // an empty set. Without this the render below dereferences
+  // currentQuestion.option_a and throws. Mirrors QuizPage's guard.
+  if (!currentQuestion) {
+    return (
+      <div className="theme-page min-h-dvh bg-bg flex flex-col relative">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center text-text">
+          <p>No questions found for this configuration.</p>
+          <BackButton onClick={() => navigate(-1)} label="Go Back" />
+        </div>
+      </div>
+    );
+  }
+
+  // Helper function to get the options of a question
+  const getQuestionOptions = (question) => [
+    question?.option_a,
+    question?.option_b,
+    question?.option_c,
+    question?.option_d,
+  ];
+
+  const normalizeAnswer = (value) => `${value ?? ''}`.trim().toLowerCase();
+
+  // Company questions come from different sources, so the answer is stored
+  // either as an option letter ("A") or as the option text ("20%").
+  // Resolve both to the option text.
+  const getCorrectOptionText = (question) => {
+    const options = getQuestionOptions(question);
+    const rawAnswer = `${question?.correct_answer ?? question?.correctAnswer ?? ''}`.trim();
+    const letterMatch = rawAnswer.match(/^(?:option\s*)?([a-d])(?:[.)])?$/i);
+
+    if (letterMatch) return options[letterMatch[1].toUpperCase().charCodeAt(0) - 65];
+
+    return options.find(option => normalizeAnswer(option) === normalizeAnswer(rawAnswer));
   };
 
-  // Helper function to get letter (A, B, C, D) from option text
-  const getLetterFromOptionText = (option) => {
-    if (option === currentQuestion.option_a) return 'A';
-    if (option === currentQuestion.option_b) return 'B';
-    if (option === currentQuestion.option_c) return 'C';
-    if (option === currentQuestion.option_d) return 'D';
-    return null;
-  };
+  const isCorrectOption = (option, question = currentQuestion) =>
+    normalizeAnswer(option) === normalizeAnswer(getCorrectOptionText(question));
 
   const handleSelect = (option) => {
     // If question is already resolved, don't allow more selections
     if (questionResolved[currentIndex]) return;
 
-    const optionLetter = getLetterFromOptionText(option);
-
     // If this is the correct answer
-    if (optionLetter === currentQuestion.correct_answer?.toUpperCase()) {
+    if (isCorrectOption(option)) {
       setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
       setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
       return;
@@ -129,7 +161,7 @@ export default function CompanyQuizPage() {
   };
 
   const handleShowAnswer = () => {
-    const correctText = getOptionTextFromLetter(currentQuestion.correct_answer);
+    const correctText = getCorrectOptionText(currentQuestion);
     setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: correctText }));
     setRevealedAnswers((prev) => ({ ...prev, [currentIndex]: true }));
     setShowAnswer(true);
@@ -157,42 +189,22 @@ export default function CompanyQuizPage() {
       .map((question, index) => ({ question, index }))
       .filter(({ index }) => !attemptedOnly || selectedAnswers[index] !== undefined);
 
-    const finalAnswers = questionsToScore.map(({ question, index }) => {
-      // Helper to get letter from option text for this specific question
-      const getLetterForQuestion = (option, q) => {
-        if (option === q.option_a) return 'A';
-        if (option === q.option_b) return 'B';
-        if (option === q.option_c) return 'C';
-        if (option === q.option_d) return 'D';
-        return null;
-      };
-      
-      return {
-        questionId: question.id,
-        questionText: question.question,
-        options: [question.option_a, question.option_b, question.option_c, question.option_d],
-        userAnswer: revealedAnswers[index] ? 'N/A' : selectedAnswers[index],
-        correctAnswer: getOptionTextFromQuestion(question.correct_answer, question),
-        isCorrect: !revealedAnswers[index] && getLetterForQuestion(selectedAnswers[index], question) === question.correct_answer?.toUpperCase(),
-        isNA: Boolean(revealedAnswers[index]),
-        explanation: question.explanation,
-      };
-    });
+    const finalAnswers = questionsToScore.map(({ question, index }) => ({
+      questionId: question.id,
+      questionText: question.question,
+      options: getQuestionOptions(question),
+      userAnswer: revealedAnswers[index] ? 'N/A' : selectedAnswers[index],
+      correctAnswer: getCorrectOptionText(question),
+      isCorrect: !revealedAnswers[index] && isCorrectOption(selectedAnswers[index], question),
+      isNA: Boolean(revealedAnswers[index]),
+      explanation: question.explanation,
+    }));
 
     setAnswers(finalAnswers);
     setShowExitDialog(false);
     setIsQuizComplete(true);
   };
 
-  const getOptionTextFromQuestion = (letter, question) => {
-    const options = {
-      A: question.option_a,
-      B: question.option_b,
-      C: question.option_c,
-      D: question.option_d,
-    };
-    return options[letter?.toUpperCase()];
-  };
 
   const handleRestart = () => {
     setCurrentIndex(0);
@@ -209,8 +221,7 @@ export default function CompanyQuizPage() {
 
   // Calculate score for header
   const score = Object.keys(selectedAnswers).filter(
-    (key) => !revealedAnswers[key]
-      && getLetterFromOptionText(selectedAnswers[key]) === filteredQuestions[key]?.correct_answer?.toUpperCase()
+    (key) => !revealedAnswers[key] && isCorrectOption(selectedAnswers[key], filteredQuestions[key])
   ).length;
 
   const categoryDisplayNames = {
@@ -222,17 +233,15 @@ export default function CompanyQuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col relative">
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
-          <p>Loading questions...</p>
-        </div>
+      <div className="min-h-dvh bg-bg flex flex-col relative">
+        <LoadingState label="Loading questions" className="flex-1" />
       </div>
     );
   }
 
   if (!currentQuestion) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col relative">
+      <div className="min-h-dvh bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
           <p>No questions found for this category.</p>
           <BackButton onClick={() => navigate(`/practice/company/${slug}`)} label="Go Back" />
@@ -261,13 +270,14 @@ export default function CompanyQuizPage() {
     );
   }
 
-  const selectedForCurrent = selectedAnswers[currentIndex];
+  // (removed `selectedForCurrent` - it duplicated selectedAnswers[currentIndex],
+  //  which is already read directly where it is needed)
   const isLastQuestion = currentIndex === total - 1;
   const hasAttemptedCurrentQuestion = Boolean(selectedAnswers[currentIndex])
     || (attemptedAnswers[currentIndex]?.length ?? 0) > 0;
 
   return (
-    <div className="theme-page min-h-screen bg-white flex flex-col relative">
+    <div className="theme-page min-h-dvh bg-white flex flex-col relative">
       {/* Decorative rails */}
       <div className="pointer-events-none fixed inset-0 z-0 hidden md:block">
         <div className="absolute left-0 top-0 h-full w-10 border-l-[1.8px] border-r-[1.8px] border-dotted border-gray-200 dark:border-white/[0.05] slanted-rail-left" />
@@ -296,7 +306,7 @@ export default function CompanyQuizPage() {
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-4 gap-4 relative z-10">
         {/* Question card with footer */}
-        <div className="w-full min-h-[350px] sm:min-h-[400px] max-w-[700px] bg-white dark:bg-[#1B2014] border-1 border-dashed border-gray-200 dark:border-[#343B29] p-4 sm:p-6 flex flex-col gap-3">
+        <div className="w-full min-h-[350px] sm:min-h-[400px] max-w-[700px] bg-white dark:bg-surface border-1 border-dashed border-gray-200 dark:border-border p-4 sm:p-6 flex flex-col gap-3">
           {/* Subtopic & Difficulty - Mobile visible */}
           <div className="flex items-center gap-2 sm:hidden">
             <span className="text-xs font-medium text-text-muted">{company?.name}</span>
@@ -314,7 +324,7 @@ export default function CompanyQuizPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
             {[currentQuestion.option_a, currentQuestion.option_b, currentQuestion.option_c, currentQuestion.option_d].map((option, i) => {
-              const isCorrect = getLetterFromOptionText(option) === currentQuestion.correct_answer?.toUpperCase();
+              const isCorrect = isCorrectOption(option);
               const isAttempted = (attemptedAnswers[currentIndex] || []).includes(option);
               const isSelected = selectedAnswers[currentIndex] === option;
               let optionState = 'default';
@@ -346,21 +356,21 @@ export default function CompanyQuizPage() {
             {selectedAnswers[currentIndex] && (
               <div
                 className={`px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer?.toUpperCase()
+                  isCorrectOption(selectedAnswers[currentIndex])
                     ? 'bg-[#f0fdf4] dark:bg-green-500/10 text-primary-strong dark:text-green-300 border border-[#bbf7d0] dark:border-green-500/40'
                     : 'bg-[#fff5f5] dark:bg-red-500/10 text-danger dark:text-red-300 border border-[#fecaca] dark:border-red-500/40'
                 }`}
               >
-                {getLetterFromOptionText(selectedAnswers[currentIndex]) === currentQuestion.correct_answer?.toUpperCase()
+                {isCorrectOption(selectedAnswers[currentIndex])
                   ? '✓ Correct!'
-                  : `✗ Incorrect — Answer: ${getOptionTextFromLetter(currentQuestion.correct_answer)}`}
+                  : `✗ Incorrect — Answer: ${getCorrectOptionText(currentQuestion)}`}
               </div>
             )}
 
             {!questionResolved[currentIndex] && (
               <button
                 onClick={handleShowAnswer}
-                className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 transition-all"
+                className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 t-interactive"
               >
                 Show Answer
               </button>
@@ -397,7 +407,7 @@ export default function CompanyQuizPage() {
           <button
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-text-strong hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-text-strong hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
           >
             <ArrowLeft className="w-4 h-4" />
             Previous
@@ -411,7 +421,7 @@ export default function CompanyQuizPage() {
             <button
               onClick={() => handleFinishQuiz()}
               disabled={!hasAttemptedCurrentQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-white bg-lime-500 hover:bg-lime-600 disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-accent-contrast bg-lime-400 hover:bg-lime-300 disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
             >
               Finish
               <ArrowRight className="w-4 h-4" />
@@ -420,7 +430,7 @@ export default function CompanyQuizPage() {
             <button
               onClick={handleNext}
               disabled={!hasAttemptedCurrentQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-primary hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-accent-ink hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
             >
               Next
               <ArrowRight className="w-4 h-4" />
