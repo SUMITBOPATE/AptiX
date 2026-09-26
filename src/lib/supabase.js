@@ -200,20 +200,4 @@ export const getAllQuestions = async () => {
   return data || []
 }
 
-// Get question count by slug
-export const getQuestionCountBySlug = async (slug) => {
-  const { values } = await getCardQueryValues('quantitative-aptitude', slug);
-  const { count, error } = await supabase
-    .from('questions')
-    .select('*', { count: 'exact', head: true })
-    .in('subcategory', values)
-
-  if (error) {
-    console.error('Error getting question count:', error)
-    return 0
-  }
-
-  return count || 0
-}
-
 export default supabase

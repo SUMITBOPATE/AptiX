@@ -86,8 +86,8 @@ function SubtopicPage() {
               key={card.slug}
               subtopic={card}
               topicSlug={topicSlug}
-              questionCount={isLoading ? null : count}
-              onClick={isLoading ? undefined : () => handleSelectedSubtopic(card)}
+              questionCount={count}
+              onClick={() => handleSelectedSubtopic(card)}
 
             />
 
