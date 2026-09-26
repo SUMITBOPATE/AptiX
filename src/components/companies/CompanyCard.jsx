@@ -1,80 +1,67 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { Book04Icon, TargetIcon } from '@hugeicons/core-free-icons'
+import { Book04Icon } from '@hugeicons/core-free-icons'
+import Button from '../ui/Button'
+import Spinner from '../ui/Spinner';
 
-export default function CompanyCard({ company, questionCount = null }) {
-  const { name, fullName, description, difficulty, slug } = company;
+export default function CompanyCard({ company, questionCount = null, isStatsLoading = false }) {
+  const { name, fullName, description, slug } = company;
 
-  // Company color mapping
-  const colorClasses = {
-    blue: 'bg-blue-50 border-blue-100',
-    red: 'bg-red-50 border-red-100',
-    purple: 'bg-purple-50 border-purple-100',
-    indigo: 'bg-indigo-50 border-indigo-100',
-  };
-
-  const logoColorClasses = {
-    blue: 'bg-blue-100 text-blue-700',
-    red: 'bg-red-100 text-red-700',
-    purple: 'bg-purple-100 text-purple-700',
-    indigo: 'bg-indigo-100 text-indigo-700',
-  };
-
-  const companyColor = company.color || 'blue';
+  // Plain surface, matching TopicCard directly above in the page. The card was
+  // previously tinted per company, which made two structurally identical
+  // adjacent card grids look like different components. The monogram chip was
+  // then dropped here too, so the card is just the fields a visitor scans for.
+  const isComingSoon = questionCount === 0;
+  const showQuestionCount = !isComingSoon && (isStatsLoading || questionCount !== null);
 
   return (
-    <div className={`group bg-white dark:bg-surface rounded-xl p-6 border border-gray-100 dark:border-border shadow-sm hover:shadow-md transition-all duration-300 ${colorClasses[companyColor]}`}>
-      {/* Company Logo / Badge */}
-      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-lg ${logoColorClasses[companyColor]} mb-4 font-bold text-xl`}>
-        {name}
-      </div>
-
-      {/* Company Name */}
-      <h3 className="text-xl font-bold text-gray-900 mb-1">
+    <article className="motion-card group flex h-full flex-col rounded-xl border border-[#EAEAEA] bg-white p-6 dark:border-border dark:bg-surface">
+      {/* Title — 20px/600, matching TopicCard. Was 20px/700, which read
+          heavier than the neighbouring 24px/600 topic titles. */}
+      <h3 className="text-xl font-semibold leading-snug tracking-[-0.01em] text-text-strong">
         {name}
       </h3>
 
-      {/* Full Name */}
-      <p className="text-sm text-gray-600 mb-3">
-        {fullName}
-      </p>
+      {/* Only present where it expands an acronym (TCS, HCL). For Cognizant,
+          Infosys and Wipro it was just the name plus a legal suffix. */}
+      {fullName && (
+        <p className="mt-1 text-sm leading-snug text-text-muted">{fullName}</p>
+      )}
 
-      {/* Description */}
-      <p className="text-base text-gray-700 mb-6 leading-relaxed h-16 overflow-hidden line-clamp-3">
+      {/* min-h matches TopicCard: exactly three lines at 16px x 1.6. The old
+          4.5rem reserved less than the clamp actually occupied. */}
+      <p className="mt-2 min-h-[4.8rem] text-base leading-[1.6] text-text line-clamp-3">
         {description}
       </p>
 
-      {/* Stats */}
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={Book04Icon}
-            className="w-4 h-4 text-lime-500"
-          />
-          <span className="text-xs font-medium text-gray-600">
-            {questionCount === null ? 'Loading…' : `${questionCount} Questions`}
-          </span>
-        </div>
+      <div className="mt-auto pt-5">
+        {showQuestionCount && (
+          <p className="mb-3 flex items-center gap-2 text-sm font-medium text-text-muted">
+            <HugeiconsIcon
+              icon={Book04Icon}
+              className="h-4 w-4 text-accent-ink"
+              aria-hidden="true"
+            />
+            {isStatsLoading ? <Spinner size="sm" /> : `${questionCount} questions`}
+          </p>
+        )}
 
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={TargetIcon}
-            className="w-4 h-4 text-lime-500"
-          />
-          <span className="text-xs font-medium text-gray-600">{difficulty}</span>
-        </div>
+        {isComingSoon ? (
+          /* A single "Coming Soon" signal. It used to appear twice — as an
+             absolutely-positioned badge, and again on the disabled button. */
+          <Button
+            disabled
+            showArrow={false}
+            className="w-full cursor-not-allowed bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-400"
+          >
+            Coming Soon
+          </Button>
+        ) : (
+          <Button to={`/practice/company/${slug}`} size="sm" className="w-full">
+            Start Practice
+            <span className="sr-only"> — {name}</span>
+          </Button>
+        )}
       </div>
-
-      {/* CTA Button */}
-      <Link to={`/practice/company/${slug}`} className="w-full">
-        <button className="w-full px-6 py-3 bg-lime-400 text-white dark:text-[#17210a] font-bold rounded-lg shadow-md shadow-lime-500/20 hover:bg-lime-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
-          Start Practice
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </Link>
-    </div>
+    </article>
   );
 }

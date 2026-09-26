@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TopicCard from '../components/topics/TopicCard'
 import MockTest from '../components/topics/MockTest'
 import Companies from '../components/companies/Companies'
@@ -8,23 +8,24 @@ import { getQuestionStatistics } from '../lib/supabase';
 
 function Topics() {
   const [questionStats, setQuestionStats] = useState(null);
+  const [statsFailed, setStatsFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
+
     const loadStatistics = async () => {
       const categorySlugs = topicsData.map(topic => topic.slug);
       const companyNames = companiesData.map(company => company.name);
 
       try {
-        let stats;
-        try {
-          stats = await getQuestionStatistics(categorySlugs, companyNames);
-        } catch {
-          stats = await getQuestionStatistics(categorySlugs, companyNames);
-        }
-        if (active) setQuestionStats(stats);
+        const stats = await getQuestionStatistics(categorySlugs, companyNames);
+        if (!active) return;
+        setQuestionStats(stats);
       } catch (error) {
         console.error('Unable to load question statistics:', error);
+        // Previously this only logged, which left every card stuck on
+        // "Loading…" forever. Flag it so the cards can drop the stat instead.
+        if (active) setStatsFailed(true);
       }
     };
 
@@ -32,39 +33,46 @@ function Topics() {
     return () => { active = false; };
   }, []);
 
-  return (
-  <>
+  const isStatsLoading = !statsFailed && questionStats === null;
 
-    <div id='topics-section' className="min-h-screen bg-color-bg dark:bg-bg sm:p-2 md:p-12 text-gray-800 dark:text-text">
-      <div  className="max-w-screen-2xl mx-auto py-2 ">
-        {/* <h1 className='text-4xl mb-6 text-gray-700'>
-          The Best Platform to <span className='font-semibold text-lime-700'>Crack Aptitude</span>
-        </h1> */}
-        <h2 className="text-3xl font-bold leading-1.2 tracking-tight text-gray-900">
+  return (
+    <div
+      id="topics-section"
+      className="theme-content-background scroll-mt-20 pt-12 md:pt-16 text-gray-800 dark:text-text"
+    >
+      <div className="max-w-6xl mx-auto mb-8">
+        <h2 className="text-3xl font-semibold leading-[1.15] tracking-tight text-gray-900">
           Topics
         </h2>
-        <p className="text-xl text-gray-600 mb-4 max-w-3xl">
+        <p className="text-base leading-[1.6] text-gray-600 md:text-xl max-w-[62ch]">
           Explore various topics to enhance your aptitude skills and ace your exams.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {topicsData.map((topic) => {
-          return (
-            <TopicCard
-              key={topic.slug}
-              topic={topic}
-              questionCount={questionStats?.byCategory[topic.slug] ?? null}
-            />
-          );
-        })}
-
+      {/* No <Reveal> on this grid: these cards are the primary navigation of the
+          site and are seen on every visit. Scrolling them in delays the content
+          the visitor came for, and hides it entirely if the observer never
+          fires. Entrance motion belongs on the marketing sections below. */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {topicsData.map((topic) => (
+          <TopicCard
+            key={topic.slug}
+            topic={topic}
+            questionCount={statsFailed ? null : questionStats?.byCategory?.[topic.slug] ?? null}
+            isStatsLoading={isStatsLoading}
+          />
+        ))}
       </div>
 
-      <MockTest questionCount={questionStats?.total ?? null} />
-      <Companies questionCounts={questionStats?.byCompany ?? null} />
+      <MockTest
+        questionCount={statsFailed ? null : questionStats?.total ?? null}
+        isStatsLoading={isStatsLoading}
+      />
+      <Companies
+        questionCounts={statsFailed ? null : questionStats?.byCompany ?? null}
+        isStatsLoading={isStatsLoading}
+      />
     </div>
-  </>
   );
 }
 

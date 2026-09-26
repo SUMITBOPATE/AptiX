@@ -40,9 +40,9 @@ export default function CategoryFilter({ questions, selectedCategory, onCategory
         <button
           key={category.id}
           onClick={() => onCategoryChange(category.id)}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+          className={`px-4 py-2 rounded-lg font-medium t-interactive ${
             selectedCategory === category.id
-              ? 'bg-lime-400 text-white shadow-md shadow-lime-500/30'
+              ? 'bg-lime-400 text-accent-contrast shadow-md shadow-lime-500/30'
               : 'bg-white text-gray-700 border border-gray-300 hover:border-lime-400'
           }`}
         >

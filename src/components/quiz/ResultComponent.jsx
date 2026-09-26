@@ -5,7 +5,8 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
   // Derive score from answers array
   const correct = answers.filter(a => a.isCorrect).length;
   const total = answers.length;
-  const wrong = total - correct;
+  const na = answers.filter(a => a.isNA).length;
+  const wrong = total - correct - na;
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
   // Calculate circle progress (correct out of total)
@@ -14,9 +15,9 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
   const progress = (correct / total) * circumference;
 
   return (
-    <div className="theme-page min-h-screen bg-white flex flex-col">
+    <div className="theme-page min-h-dvh bg-white flex flex-col">
       {/* Header - Simple white with border */}
-      <div className="border-b border-gray-200 dark:border-[#343B29] px-6 py-6 bg-white">
+      <div className="border-b border-gray-200 dark:border-border px-6 py-6 bg-white">
         <h1 className="text-xl font-semibold text-gray-800 text-center">Quiz Complete</h1>
         <p className="text-sm text-gray-500 text-center mt-1">Here's your performance summary</p>
       </div>
@@ -32,21 +33,22 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                 cy="88"
                 r={radius}
                 fill="none"
-                stroke="#f3f4f6"
+                stroke="currentColor"
                 strokeWidth="12"
+                className="text-border"
               />
-              {/* Progress circle - lime color */}
+              {/* Progress circle - accent, so it adapts per theme */}
               <circle
                 cx="88"
                 cy="88"
                 r={radius}
                 fill="none"
-                stroke="#84cc16"
+                stroke="currentColor"
                 strokeWidth="12"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={circumference - progress}
-                className="transition-all duration-1000 ease-out"
+                className="ring-reveal text-accent-ink"
               />
             </svg>
 
@@ -63,7 +65,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
       {/* Stats Cards */}
       <div className="px-6 pb-4">
         <div className="max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Correct */}
             <div className="p-3 bg-green-50 rounded-lg border border-green-200 text-center">
               <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-5 h-5 text-green-500 mx-auto mb-1" />
@@ -76,6 +78,12 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
               <HugeiconsIcon icon={CancelCircleIcon} className="w-5 h-5 text-red-500 mx-auto mb-1" />
               <p className="text-lg font-bold text-red-600">{wrong}</p>
               <p className="text-xs text-red-600 font-medium">Wrong</p>
+            </div>
+
+            {/* Revealed / Not attempted */}
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-center">
+              <p className="text-lg font-bold text-amber-600">{na}</p>
+              <p className="text-xs text-amber-600 font-medium">N/A</p>
             </div>
 
             {/* Time */}
@@ -93,7 +101,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
         <div className="max-w-2xl mx-auto flex gap-3">
           <button
             onClick={onRestart}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-white rounded-lg font-medium text-sm hover:bg-lime-500 transition"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-accent-contrast rounded-lg font-medium text-sm hover:bg-lime-300 t-interactive"
           >
             <HugeiconsIcon icon={RefreshIcon} className="w-4 h-4" />
             Retry Quiz
@@ -116,20 +124,23 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
           <div className="space-y-2">
             {answers.map((answer, index) => {
               const isCorrect = answer.isCorrect;
+              const isNA = answer.isNA;
 
               return (
                 <div
                   key={index}
                   onClick={() => onReview(index)}
-                  className="p-3 rounded-lg border border-gray-200 dark:border-[#343B29] bg-white cursor-pointer transition-colors duration-200 hover:border-lime-300 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 hover:shadow-sm"
+                  className="p-3 rounded-lg border border-gray-200 dark:border-border bg-white cursor-pointer transition-colors duration-200 hover:border-lime-300 dark:hover:bg-surface-2 dark:hover:border-lime-400/20 hover:shadow-sm"
                 >
                   <div className="flex items-start gap-3">
                     {/* Status Icon - Simple circle */}
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                      isCorrect ? 'bg-green-100' : 'bg-red-100'
+                      isCorrect ? 'bg-green-100' : isNA ? 'bg-amber-100' : 'bg-red-100'
                     }`}>
                       {isCorrect ? (
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-3 h-3 text-green-600" />
+                      ) : isNA ? (
+                        <span className="text-xs font-bold text-amber-700">NA</span>
                       ) : (
                         <HugeiconsIcon icon={CancelCircleIcon} className="w-3 h-3 text-red-600" />
                       )}
@@ -142,7 +153,7 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
                       </p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {!isCorrect && answer.userAnswer && (
-                          <span className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded">
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${isNA ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'}`}>
                             Your answer: {answer.userAnswer}
                           </span>
                         )}

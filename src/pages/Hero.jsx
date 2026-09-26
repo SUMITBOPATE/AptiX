@@ -1,108 +1,67 @@
-import React from 'react'
-import { HugeiconsIcon } from '@hugeicons/react'
-import {ArrowRight02Icon, AbsoluteIcon, Activity02Icon, AiBrain01Icon, AiInnovation02Icon } from '@hugeicons/core-free-icons';
+import Button from '../components/ui/Button';
+import FloatingQuizCards from '../components/home/FloatingQuizCards';
 
-export default function Hero({ onShowTopics }) {
+export default function Hero({ onScrollTo }) {
   return (
-    <div className="min-h-screen max-w-screen-2xl justify-center text-gray-800 dark:text-text font-sans">
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen sm:p-8">
-        <div className="max-w-6xl w-full text-center z-10 space-y-8">
-          {/* Version Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-medium text-gray-600">
-            <span className="w-2 h-2 rounded-full bg-lime-500 animate-pulse"></span>
+    <div className="max-w-screen-2xl justify-center text-gray-800 dark:text-text font-sans">
+      {/* Content. No <Reveal> here on purpose: the h1 is the LCP element and
+          the primary content, and hiding it until an observer fires delays the
+          largest paint and leaves a blank first screen if JS is slow. */}
+      <div className="relative z-10 flex flex-col items-center pt-8 pb-0 sm:pt-10">
+        {/* Explicit, non-uniform vertical rhythm. The heading and its
+            supporting line are one unit and sit closer together than the gap
+            down to the CTA row — a uniform space-y-* flattens that hierarchy.
+            All in rem, so a larger user text size scales the layout with it. */}
+        <div className="max-w-5xl w-full text-center z-10">
+          {/* Status chip. Small text wants slightly POSITIVE tracking (the
+              inverse of the display heading), and leading-none lets the
+              padding alone set the chip's height. */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium leading-none tracking-[0.01em] text-gray-600">
+            <span className="h-2 w-2 rounded-full bg-accent-ink motion-safe:animate-pulse" aria-hidden="true" />
             Version 1.0 Now Live
           </div>
 
-          {/* Heading */}
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900">
-            Level Up Your <span className="text-lime-700 italic">Aptitude.</span><br />Crack Your First Job.
+          {/* Heading.
+              clamp() for fluid optical sizing, then leading that TIGHTENS as
+              the type grows and tracking that goes MORE negative as it grows —
+              both inverse-to-size, per the typography rules. `text-balance`
+              replaces the manual <br>: the two sentences are separate blocks so
+              the intended break is kept, but each can now wrap and re-balance
+              instead of overflowing on a narrow phone. */}
+          <h1 className="mt-8 text-balance text-[clamp(1.875rem,5.2vw,3.75rem)] leading-[1.14] tracking-[-0.005em] [font-weight:600] text-gray-900 md:leading-[1.06] md:tracking-[-0.025em]">
+            <span className="block">
+              Level Up Your <span className="text-accent-ink italic">Aptitude.</span>
+            </span>
+            <span className="block">Crack Your Next Test.</span>
           </h1>
 
-          {/* Description */}
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Master quantitative reasoning, logical deduction, and verbal precision with our high-performance technical training platform.
+          {/* Description. Measure capped in ch rather than px so it stays a
+              comfortable ~62 characters as the type scales, and leading eases
+              off slightly at the larger size. Body tracking stays near 0. */}
+          <p className="mx-auto mt-5 max-w-[62ch] text-pretty text-lg leading-[1.6] text-gray-600 md:text-xl md:leading-[1.55]">
+            Practice aptitude, reasoning, and verbal questions built around the placement tests of top companies and government exams.
           </p>
 
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button
-              onClick={onShowTopics}
-              className="w-full sm:w-auto px-8 py-4 bg-lime-400 text-white dark:text-[#17210a] font-bold rounded-xl shadow-lg shadow-lime-500/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
+          {/* Two distinct paths: browse a topic, or go straight to a mock. */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button onClick={() => onScrollTo('topics-section')} className="w-full sm:w-auto">
               Start Learning
-              <HugeiconsIcon icon={ArrowRight02Icon} className="w-5 h-5" />
-            </button>
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => onScrollTo('mock-test-section')}
+              showArrow={false}
+              className="w-full sm:w-auto"
+            >
+              Try a Mock Test
+            </Button>
           </div>
         </div>
 
-        {/* Bento Grid Section */}
-        <div className="max-w-7xl mx-auto mt-16">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-[2px] w-6 bg-lime-500"></div>
-            <h2 className="font-semibold text-sm uppercase tracking-[0.2em] text-lime-600">Mastery Pillars</h2>
-          </div>
-
-          {/* Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            {/* Fundamentals - Large */}
-            <div className="md:col-span-8 group relative p-6 bg-gray-50 dark:bg-[#1B2014] border border-gray-200 dark:border-[#343B29] rounded-xl overflow-hidden hover:shadow-xl dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 transition-all duration-500">
-              <div className="flex flex-col h-full justify-between">
-                <div>
-                  <div className="w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:border-lime-400/10 rounded-lg flex items-center justify-center mb-4">
-                    <HugeiconsIcon icon={AbsoluteIcon} className="w-6 h-6 text-lime-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Fundamentals</h3>
-                  <p className="text-gray-600 max-w-md text-sm">Core mathematical concepts and logical frameworks designed for rapid mental computation and conceptual clarity.</p>
-                </div>
-                <div className="mt-6 flex gap-2">
-                  <span className="px-3 py-1 bg-gray-200 rounded-md text-xs font-medium text-gray-600">QUANT</span>
-                  <span className="px-3 py-1 bg-gray-200 rounded-md text-xs font-medium text-gray-600">LOGIC</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Analytics - Medium */}
-            <div className="md:col-span-4 p-6 bg-gray-50 dark:bg-[#1B2014] border border-gray-200 dark:border-[#343B29] rounded-xl flex flex-col justify-between">
-              <div> 
-                <div className="w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:border-lime-400/10 rounded-lg flex items-center justify-center mb-4">
-                  <HugeiconsIcon icon={Activity02Icon} className="w-6 h-6 text-lime-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Analytics</h3>
-                <p className="text-gray-600 text-sm">Real-time performance metrics tracking your speed, accuracy, and percentile rank.</p>
-              </div>
-              <div className="mt-6">
-                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="w-3/4 h-full bg-lime-500"></div>
-                </div>
-                <p className="text-xs mt-2 font-medium text-lime-600">Accuracy: 78%</p>
-              </div>
-            </div>
-
-            {/* Precision - Small */}
-            <div className="md:col-span-4 p-6 bg-gray-50 dark:bg-[#1B2014] border border-gray-200 dark:border-[#343B29] rounded-xl hover:bg-gray-100 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 transition-colors group">
-              <div className="w-12 h-12 bg-lime-100 dark:bg-lime-400/10 dark:border dark:border-lime-400/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <HugeiconsIcon icon={AiBrain01Icon} className="w-6 h-6 text-lime-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Precision</h3>
-              <p className="text-gray-600 text-sm">Techniques to eliminate common pitfalls and cognitive biases.</p>
-            </div>
-
-            {/* AI Mode - Large */}
-            <div className="md:col-span-8 p-6 bg-lime-800 text-white rounded-xl flex items-center gap-8">
-              <div className="flex-1 min-w-0">
-                <div className="inline-block px-2 py-0.5 bg-white text-lime-600 text-xs font-bold rounded mb-4">NEURAL ENGINE</div>
-                <h3 className="text-2xl font-bold mb-2 break-words ">AI Personalization</h3>
-                <p className="text-white/70 text-sm max-w-sm break-words leading-relaxed">Our adaptive algorithm identifies your weak zones and creates a custom difficulty curve tailored to your learning pace.</p>
-              </div>
-              <div className="hidden md:block">
-                <div className="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center">
-                  <HugeiconsIcon icon={AiInnovation02Icon} className="w-10 h-10 text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Decorative card row. Sits at z-0 beneath the z-10 content above and
+            is pointer-events-none + aria-hidden, so it can never intercept a
+            click on the CTAs or reach a screen reader. */}
+        <FloatingQuizCards />
       </div>
     </div>
   )

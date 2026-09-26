@@ -3,8 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/main-logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- viewport-fit=cover so the fixed header can respect the notch on iOS.
+         No maximum-scale/user-scalable: pinch zoom must stay available. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>AptiX — Aptitude, Reasoning &amp; Verbal Practice for Placement Tests</title>
+    <meta
+      name="description"
+      content="Practice aptitude, reasoning, and verbal questions built around the placement tests of top companies and government exams. Track speed and accuracy with real company-specific mocks."
+    />
+    <!-- Add <link rel="canonical" href="https://your-domain/" /> once the
+         production domain is known. A bare href="/" makes Vite's HTML asset
+         transform try to read the root directory and fail the build. -->
+
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14170f" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph / Twitter. Replace /main-logo.png with an absolute 1200x630
+         URL before launch — most crawlers reject relative og:image paths. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AptiX" />
+    <meta property="og:title" content="AptiX — Crack Your Next Aptitude Test" />
+    <meta
+      property="og:description"
+      content="Aptitude, reasoning, and verbal practice built around real company placement tests and government exams."
+    />
+    <meta property="og:image" content="/main-logo.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AptiX — Crack Your Next Aptitude Test" />
+    <meta
+      name="twitter:description"
+      content="Aptitude, reasoning, and verbal practice built around real company placement tests and government exams."
+    />
+    <meta name="twitter:image" content="/main-logo.png" />
+
     <script>
+      // Resolve the theme before first paint so the navbar never flashes the
+      // wrong surface. Keep the key in sync with Navbar.jsx.
       (() => {
         const savedTheme = localStorage.getItem('aptix-theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -13,20 +49,18 @@
         }
       })();
     </script>
-    <!-- Font links -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Nunito+Sans:opsz,wght@6..12,300&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Lustria&family=Nunito+Sans:opsz,wght,YTLC@6..12,200..1000,440..540&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Lustria&family=Nunito+Sans:opsz,wght,YTLC@6..12,200..1000,440..540&display=swap" rel="stylesheet">
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Nunito+Sans:opsz,wght@6..12,300&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
-  
-    <title>AptiX</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Only the three families --font-sans actually resolves. The previous
+         three stylesheets pulled eight (incl. DM Serif Text, Lustria, Lato). -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

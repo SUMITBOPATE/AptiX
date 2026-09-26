@@ -6,7 +6,7 @@ const DIFFICULTIES = [
   { id: 'easy',   label: 'Easy',        icon: Leaf01Icon, desc: 'Foundational concepts' },
   { id: 'medium', label: 'Medium',      icon: FlashIcon, desc: 'Word problems & logic' },
   { id: 'hard',   label: 'Hard',        icon: Fire02Icon, desc: 'Advanced & complex' },
-  { id: 'ai',     label: 'AI Adaptive', icon: StarsIcon, desc: 'Smart difficulty tuning', recommended: true },
+  { id: 'adaptive',     label: 'Adaptive', icon: StarsIcon, desc: 'Smart difficulty recommendation', recommended: true },
 ];
 
 const SLIDER_STEPS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
@@ -82,7 +82,7 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
           {/* Close */}
           <button
             onClick={onClose}
-            className="bg-transparent border border-border rounded-lg w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-surface hover:border-[#c3c3c3] transition-all shrink-0 mt-0.5"
+            className="bg-transparent border border-border rounded-lg w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-surface hover:border-[#c3c3c3] t-interactive shrink-0 mt-0.5"
           >
             <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
           </button>
@@ -124,23 +124,23 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
               </div>
             </div>
 
-            <div className="flex justify-between text-[0.6875rem] text-text-muted">
+            <div className="flex justify-between text-xs text-text-muted">
               <span>{minQuestions}</span><span>{maxQuestions}</span>
             </div>
           </div>
 
           {/* Estimated time highlight */}
           <div className="flex items-center gap-3 border-[1.5px] border-dashed border-primary rounded-xl px-3.5 py-2.5 bg-lime-50 dark:bg-lime-400/[0.07]">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white dark:text-[#14170F] shrink-0">
+              <div className="w-7 h-7 rounded-full bg-lime-400 text-accent-contrast flex items-center justify-center shrink-0">
               <ClockIcon />
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[0.6875rem] text-text-muted font-medium uppercase tracking-[0.04em]">Estimated Time</span>
+              <span className="text-xs text-text-muted font-medium uppercase tracking-[0.04em]">Estimated Time</span>
               <span className="text-[0.9375rem] font-bold text-primary-strong">{estimatedTime}</span>
             </div>
             <div className="w-px h-7 bg-primary opacity-25 mx-auto" />
             <div className="flex flex-col gap-0.5">
-              <span className="text-[0.6875rem] text-text-muted font-medium uppercase tracking-[0.04em]">Questions</span>
+              <span className="text-xs text-text-muted font-medium uppercase tracking-[0.04em]">Questions</span>
               <span className="text-[0.9375rem] font-bold text-primary-strong">{questionCount} Q</span>
             </div>
           </div>
@@ -160,20 +160,20 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
                     <button
                       key={diff.id}
                       onClick={() => setSelectedDifficulty(diff.id)}
-                      className={`relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left transition-all active:scale-[0.98] ${
+                      className={`press relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left ${
                         active
                           ? 'border-primary dark:border-lime-400/50 bg-lime-50 dark:bg-lime-400/[0.07]'
                           : 'border-border bg-surface hover:border-[#c3c3c3] dark:hover:border-lime-400/20 hover:bg-surface-2'
                       }`}
                     >
                       {diff.recommended && (
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-lime-400 text-accent-contrast text-xs font-bold px-1.5 py-0.5 rounded-full tracking-[0.04em] whitespace-nowrap">
                           Recommended
                         </span>
                       )}
                       <HugeiconsIcon icon={diff.icon} className="w-3 h-3" />
                       <span className="text-[0.8125rem] font-semibold text-text-strong leading-snug">{diff.label}</span>
-                      <span className="text-[0.6875rem] text-text-muted leading-snug">{diff.desc}</span>
+                      <span className="text-xs text-text-muted leading-snug">{diff.desc}</span>
                     </button>
                   );
                 })}
@@ -186,13 +186,13 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
         <div className="flex gap-2.5 px-5 py-3 border-t border-dashed border-border bg-surface">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-white dark:bg-surface text-text border-[1.5px] border-border hover:bg-surface-2"
+            className="press flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center bg-white dark:bg-surface text-text border-[1.5px] border-border hover:bg-surface-2"
           >
             Exit
           </button>
           <button
             onClick={() => onStart(config)}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center transition-all active:scale-[0.97] bg-primary text-white dark:text-[#17210a] border-none hover:bg-primary-soft"
+            className="press flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center bg-lime-400 text-accent-contrast border-none hover:bg-lime-300"
           >
             Start Practice →
           </button>
