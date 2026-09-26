@@ -7,55 +7,61 @@ import Dialog from '../components/quiz/Dailog';
 
 import Checklist from '../icons/Checklist';
 import {useState, useEffect} from 'react';
-import { getAllQuestionCounts } from '../lib/supabase';
+import { getSubcategoryIndexRows } from '../lib/supabase';
+import { buildSubtopicCards } from '../lib/subtopics';
 import BackButton from '../components/ui/BackButton';
+import LoadingState from '../components/ui/LoadingState';
 
 function SubtopicPage() {
 
 
 
- const [selectedSubtopic , setSelectedSubtopic] = useState(null);
- const [isDialogOpen , setIsDialogOpen] = useState(false);
- const [questionCounts, setQuestionCounts] = useState({});
+  const [selectedSubtopic , setSelectedSubtopic] = useState(null);
+  const [isDialogOpen , setIsDialogOpen] = useState(false);
+  const [cardGroups, setCardGroups] = useState({ cards: [], extraCards: [] });
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
   const { topicSlug } = useParams();
 
-  // Fetch question counts for each subtopic
+  // Fetch questions for each subtopic
   useEffect(() => {
-    const fetchCounts = async () => {
-      const counts = await getAllQuestionCounts();
-      setQuestionCounts(counts);
+    const fetchCards = async () => {
+      setIsLoading(true);
+      const rows = await getSubcategoryIndexRows(topicSlug);
+      setCardGroups(buildSubtopicCards(topicSlug, rows));
+      setIsLoading(false);
     };
-    fetchCounts();
+    fetchCards();
   }, [topicSlug]);
 
-const handleSelectedSubtopic = (subtopic)=>{
+  const handleSelectedSubtopic = (subtopic)=>{
 
-  setSelectedSubtopic(subtopic);
-  setIsDialogOpen(true);
-}
+    setSelectedSubtopic(subtopic);
+    setIsDialogOpen(true);
+  }
  const handleCloseDialog = () => {
  setIsDialogOpen(false);
 
  }
- const handleStartQuiz=( config)=>{
+  const handleStartQuiz=( config)=>{
   // Logic to start the quiz based on selectedSubtopic
   setIsDialogOpen(false);
   setSelectedSubtopic(config.subtopic);
   navigate(`/practice/${topicSlug}/quiz`, { state: config })
 
-}
+ }
   const handleBack = () => {
     navigate('/#topics-section');
   };
 
   const currentTopic = topicsData.find(topic => topic.slug === topicSlug);
-  const subcategories = currentTopic?.subcategories || {};
-  const subtopicsArray = Object.values(subcategories);
+  const { cards, extraCards } = cardGroups;
+  const allCards = [...cards, ...extraCards];
+
 
   return (
-    <div className="min-h-screen flex-1 w-full p-4 pt-3 text-gray-800">
+    <div className="min-h-dvh flex-1 w-full p-4 pt-3 text-gray-800">
       <div className="max-w-5xl mx-auto mt-2 mb-4">
         <BackButton onClick={handleBack} />
 
@@ -69,20 +75,26 @@ const handleSelectedSubtopic = (subtopic)=>{
       </div>
 
       <div className="max-w-5xl mx-auto">
+        {/* cardGroups starts empty, so before this the page rendered a blank
+            grid with no indication anything was happening. */}
+        {isLoading ? (
+          <LoadingState label="Loading topics" className="py-20" />
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-3.5 gap-6">
-      {subtopicsArray.map((subtopic) => (
+      {allCards.map(({ card, count }) => (
             <SubtopicCard
-              key={subtopic.slug}
-              subtopic={subtopic}
+              key={card.slug}
+              subtopic={card}
               topicSlug={topicSlug}
-              questionCount={questionCounts[subtopic.slug] ?? 0}
-              onClick={() => handleSelectedSubtopic(subtopic)}
+              questionCount={isLoading ? null : count}
+              onClick={isLoading ? undefined : () => handleSelectedSubtopic(card)}
 
             />
 
           ))}
-
         </div>
+        )}
+
 
         <div className="mt-10">
           <h2 className="mb-3 text-xl font-semibold text-gray-700 dark:text-text-strong">Mock Test</h2>
@@ -93,7 +105,7 @@ const handleSelectedSubtopic = (subtopic)=>{
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') navigate('/practice/mock-test');
             }}
-            className="bg-white dark:bg-[#1B2014] rounded-xl shadow-sm border font-family:[Geist] border-gray-200 dark:border-[#343B29] p-4 flex items-center hover:bg-gray-50 dark:hover:bg-[#22291A] dark:hover:border-lime-400/20 justify-between cursor-pointer relative overflow-hidden transition-colors duration-200"
+            className="bg-white dark:bg-surface rounded-xl shadow-sm border font-family:[Geist] border-gray-200 dark:border-border p-4 flex items-center hover:bg-gray-50 dark:hover:bg-surface-2 dark:hover:border-lime-400/20 justify-between cursor-pointer relative overflow-hidden transition-colors duration-200"
           >
             <div className="w-12 h-12 bg-gradient-to-br from-lime-50 to-lime-100 dark:from-lime-400/10 dark:to-lime-400/10 dark:border dark:border-lime-400/10 rounded-4xl flex items-center justify-center flex-shrink-0">
               <Checklist className="w-6 h-6 text-lime-500" />
@@ -122,6 +134,10 @@ const handleSelectedSubtopic = (subtopic)=>{
     selectedSubtopic={selectedSubtopic}
     onClose={handleCloseDialog}
     onStart={handleStartQuiz}
+    totalQuestions={Math.max(
+      allCards.find(({ card }) => card.slug === selectedSubtopic.slug)?.count ?? 5,
+      5
+    )}
   />
 )}
 

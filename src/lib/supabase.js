@@ -1,9 +1,10 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { getUniqueQuestions } from '../utils/questions.js';
+import { buildSubtopicCards } from './subtopics.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-console.log(import.meta.env.VITE_SUPABASE_URL )
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Get all categories (main topics)
@@ -60,20 +61,16 @@ const CATEGORY_ALIASES = {
 
 const normalizeValue = (value) => `${value || ''}`.toLowerCase().trim();
 
-const SUBCATEGORY_ALIASES = {
-  percentages: ['percentages', 'percentage'],
-  percentage: ['percentages', 'percentage'],
-};
+const getCategoryAliases = (categorySlug) =>
+  (CATEGORY_ALIASES[categorySlug] || [categorySlug]).map(normalizeValue);
 
-const getSubcategoryAliases = (slug) =>
-  SUBCATEGORY_ALIASES[normalizeValue(slug)] || [slug];
 
 // Load the small fields needed for every displayed statistic. Pagination keeps
 // category/company totals correct even when Supabase's row limit is reached.
 export const getQuestionStatistics = async (categorySlugs, companyNames) => {
   const pageSize = 1000;
   const questions = [];
-  let total = 0;
+  let serverCount = null;
 
   for (let from = 0; ; from += pageSize) {
     const { data, error, count } = await supabase
@@ -82,10 +79,19 @@ export const getQuestionStatistics = async (categorySlugs, companyNames) => {
       .range(from, from + pageSize - 1);
 
     if (error) throw error;
-    if (from === 0) total = count || 0;
+    if (from === 0) serverCount = count;
     questions.push(...(data || []));
-    if (!data?.length || questions.length >= total) break;
+
+    // Stop on a short page, never on `count`. PostgREST can return count: null
+    // (RLS, cached responses, HEAD requests); the old `total = count || 0` then
+    // made `questions.length >= total` true on the first pass, so the loop
+    // silently returned statistics computed from only the first 1000 rows.
+    if (!data?.length || data.length < pageSize) break;
   }
+
+  // Prefer the server's count, but fall back to what we actually accumulated —
+  // resolved after the loop, so the fallback sees every page rather than one.
+  const total = serverCount ?? questions.length;
 
   const byCategory = Object.fromEntries(categorySlugs.map(slug => [slug, 0]));
   const byCompany = Object.fromEntries(companyNames.map(name => [name, 0]));
@@ -111,29 +117,73 @@ export const getQuestionStatistics = async (categorySlugs, companyNames) => {
   }
 }
 
-// Fetch only rows belonging to the selected category and its declared subcategory.
-// The aliases preserve the category values already used by the questions table;
-// subcategories still come exclusively from the predefined UI taxonomy.
+// Small index of every question's category and subcategory. The topic pages use
+// it to decide which card each subcategory belongs to, so it is paginated to
+// stay correct once the table outgrows a single response.
+export const getSubcategoryIndexRows = async (categorySlug) => {
+  const pageSize = 1000;
+  const rows = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from('questions')
+      .select('category, subcategory, topic_slug', { count: 'exact' })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+    rows.push(...(data || []));
+
+    // Short-page termination, same reasoning as getQuestionStatistics above.
+    // `count` is not needed here, so it is no longer requested or tracked.
+    if (!data?.length || data.length < pageSize) break;
+  }
+
+  const allowedCategories = new Set(getCategoryAliases(categorySlug));
+  return rows.filter(row => allowedCategories.has(normalizeValue(row.category)));
+};
+
+// Subcategory values (and topic_slug fallbacks) that belong to a card, used to
+// build the questions query.
+const getCardQueryValues = async (categorySlug, cardSlug) => {
+  const rows = await getSubcategoryIndexRows(categorySlug);
+  const { cards, extraCards } = buildSubtopicCards(categorySlug, rows);
+  const entry = [...cards, ...extraCards].find(({ card }) => card.slug === cardSlug);
+
+  if (!entry) return { values: [cardSlug], topicSlugs: [] };
+
+  return {
+    values: entry.values.length ? entry.values : [cardSlug],
+    topicSlugs: entry.topicSlugs,
+  };
+};
+
+// Fetch the rows belonging to a subtopic card. The card slug is resolved back to
+// every database value that maps to it, so "percentage" and "Percentages" are
+// served by the same quiz.
 export const getQuestionsBySlug = async (categorySlug, subcategorySlug) => {
-  const subcategoryAliases = getSubcategoryAliases(subcategorySlug);
-  const { data, error } = await supabase
-    .from('questions')
-    .select('*', { count: 'exact' })
-    .in('subcategory', subcategoryAliases)
-    .order('id')
+  const { values, topicSlugs } = await getCardQueryValues(categorySlug, subcategorySlug);
+
+  const fetchBy = (column, matches) =>
+    supabase
+      .from('questions')
+      .select('*')
+      .in(column, matches)
+      .order('id');
+
+  const { data, error } = await fetchBy('subcategory', values);
+  const fallback = topicSlugs.length ? await fetchBy('topic_slug', topicSlugs) : { data: [] };
 
   if (error) {
     console.error('Error fetching questions:', error)
     return []
   }
 
-  const allowedCategories = new Set(
-    (CATEGORY_ALIASES[categorySlug] || [categorySlug]).map(normalizeValue)
-  );
+  const allowedCategories = new Set(getCategoryAliases(categorySlug));
+  const rows = [...(data || []), ...(fallback.data || [])];
 
-  return (data || []).filter(question =>
-    allowedCategories.has(normalizeValue(question.category))
-  )
+  return getUniqueQuestions(
+    rows.filter(row => allowedCategories.has(normalizeValue(row.category)))
+  );
 }
 
 // Used by mock tests: questions are mixed client-side after retrieval.
@@ -152,11 +202,11 @@ export const getAllQuestions = async () => {
 
 // Get question count by slug
 export const getQuestionCountBySlug = async (slug) => {
-  const aliases = getSubcategoryAliases(slug);
+  const { values } = await getCardQueryValues('quantitative-aptitude', slug);
   const { count, error } = await supabase
     .from('questions')
     .select('*', { count: 'exact', head: true })
-    .or(`topic_slug.in.(${aliases.join(',')}),subcategory.in.(${aliases.join(',')})`)
+    .in('subcategory', values)
 
   if (error) {
     console.error('Error getting question count:', error)
@@ -164,32 +214,6 @@ export const getQuestionCountBySlug = async (slug) => {
   }
 
   return count || 0
-}
-
-// Get all question counts grouped by topic
-export const getAllQuestionCounts = async () => {
-  const { data, error } = await supabase
-    .from('questions')
-    .select('topic_slug, subcategory')
-
-  if (error) {
-    console.error('Error getting all question counts:', error)
-    return {}
-  }
-
-  const counts = {};
-  data.forEach(q => {
-    const slug = q.subcategory || q.topic_slug;
-    if (slug) {
-      // Add with original slug
-      counts[slug] = (counts[slug] || 0) + 1;
-      // Also add with 's' variant for compatibility
-      if (slug === 'percentage') counts['percentages'] = counts[slug];
-      if (slug === 'simple-interest') counts['simple-interests'] = counts[slug];
-    }
-  });
-
-  return counts
 }
 
 export default supabase

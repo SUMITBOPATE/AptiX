@@ -1,31 +1,14 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import {ArrowRight01Icon} from '@hugeicons/core-free-icons';
-import { PercentCircleIcon, MoneyBag02Icon, BankIcon, Time02Icon, BalanceScaleIcon } from '@hugeicons/core-free-icons';
-
-const iconMap = {
-  'percentages': PercentCircleIcon,
-  'profit-loss': MoneyBag02Icon,
-  'simple-interest': BankIcon,
-  'time-work': Time02Icon,
-  'ratios-proportions': BalanceScaleIcon,
-  'series-completion': null,
-  'coding-decoding': null,
-  'blood-relations': null,
-  'direction-sense': null,
-  'logical-puzzles': null,
-  'synonyms-antonyms': null,
-  'sentence-correction': null,
-  'reading-comprehension': null,
-  'fill-in-blanks': null,
-  'para-jumbles': null,
-  'full-mock-tests': null,
-};
+import { getSubtopicIcon } from './subtopicIcons';
+import Spinner from '../ui/Spinner';
 
 const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
   const { name, slug, description } = subtopic;
   const totalQuestions = questionCount;
   const isComingSoon = totalQuestions === 0;
-  const IconComponent = iconMap[slug];
+  const IconComponent = getSubtopicIcon(slug);
+
 
   return (
     <div >
@@ -45,12 +28,8 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
           </span>
         )}
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-lime-50 to-lime-100 dark:from-lime-400/10 dark:to-lime-400/10 dark:border dark:border-lime-400/10 rounded-4xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform">
-            {IconComponent ? (
-              <HugeiconsIcon icon={IconComponent} className="w-6 h-6 text-lime-400" />
-            ) : (
-              subtopic.icon
-            )}
+          <div className="w-12 h-12 bg-gradient-to-br from-lime-50 to-lime-100 dark:from-lime-400/10 dark:to-lime-400/10 dark:border dark:border-lime-400/10 rounded-4xl flex items-center justify-center text-xl flex-shrink-0 hover-scale-icon">
+            <HugeiconsIcon icon={IconComponent} className="w-6 h-6 text-lime-400" />
           </div>
 
           <div className="flex-1 min-w-0 relative">
@@ -59,7 +38,13 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
             </h3>
             {!isComingSoon && (
               <span className="absolute top-0 right-0 px-1.5 py-0.5 rounded-4xl bg-lime-200 dark:bg-lime-400/15 dark:text-lime-300 dark:border dark:border-lime-400/10 text-xs font-medium text-gray-600">
-                {totalQuestions === null ? 'Loading…' : `0/${totalQuestions}`}
+                {/* Spinner rather than the word "Loading" — a rotating arc
+                    reads as "working" without a line of text reflowing the row. */}
+                {totalQuestions === null ? (
+                  <Spinner size="sm" className="h-3 w-3" />
+                ) : (
+                  `0/${totalQuestions}`
+                )}
               </span>
             )}
             <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-snug">
