@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { getQuestionCounts } from '../lib/supabase';
 import { companiesData } from '../../data/companies';
 import SubtopicCard from '../components/topics/SubtopicCard';
 import Dialog from '../components/quiz/Dailog';
@@ -29,32 +29,28 @@ export default function CompanyPractice() {
     const fetchCounts = async () => {
       setCountsFailed(false);
       try {
-        const { data, error } = await supabase
-          .from('questions')
-          .select('category')
-          .eq('company', company.name);
+        // Four head requests instead of one download. Postgres does the counting
+        // and the browser receives no question rows at all.
+        //
+        // Each category is passed as its canonical slug and expanded to every
+        // spelling the database may hold. This is why a count can now be slightly
+        // higher than before: the old JavaScript filter matched only two spellings
+        // per category and silently ignored rows stored as 'quantitative-aptitude'
+        // or 'logical-reasoning', so the cards understated what was available.
+        const [all, quantitative, reasoning, verbal] = await getQuestionCounts([
+          { company: company.name },
+          { company: company.name, category: 'quantitative-aptitude' },
+          { company: company.name, category: 'logical-reasoning' },
+          { company: company.name, category: 'verbal-ability' },
+        ]);
 
-        // `error` was previously ignored, so a failed request left data null,
-        // skipped the block, and every category silently reported 0 questions
-        // — a wrong number reads as a real answer.
-        if (error) throw error;
         if (!active) return;
 
-        const rows = data || [];
         setQuestionCounts({
-          all: rows.length,
-          quantitative: rows.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            return cat === 'quantitative' || cat === 'quant';
-          }).length,
-          reasoning: rows.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            return cat === 'reasoning' || cat === 'logical reasoning';
-          }).length,
-          verbal: rows.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            return cat === 'verbal' || cat === 'verbal reasoning';
-          }).length,
+          all: all.count,
+          quantitative: quantitative.count,
+          reasoning: reasoning.count,
+          verbal: verbal.count,
         });
       } catch (err) {
         console.error('Unable to load question counts:', err);

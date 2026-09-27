@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getAllQuestions, getQuestionsBySlug } from '../lib/supabase.js';
+import { getMockQuestions, getQuestionsBySlug } from '../lib/supabase.js';
 import QuizHeader from '../components/quiz/QuizHeader.jsx';
 import QuizOption from '../components/quiz/QuizOption.jsx';
 import ArrowLeft from '../icons/ArrowLeft';
@@ -28,13 +28,23 @@ export default function QuizPage() {
   useEffect(() => {
     let active = true;
 
+    const requestedCount = count || 10;
+    // Difficulty filtering still runs in JavaScript (see the note in
+    // supabase.js about the difficulty column), so the database is asked for
+    // extra rows. Applying a difficulty filter *after* a LIMIT would otherwise be
+    // able to return fewer questions than the visitor asked for.
+    const poolSize = Math.min(requestedCount * 3, 200);
+
     const fetchQuestions = async () => {
       setLoading(true);
       setLoadFailed(false);
       try {
+        // Mock tests draw a random, balanced pool in the database. A topic quiz
+        // asks for that subtopic's rows only, already filtered by category and
+        // subcategory server-side.
         const questions = isMockTest
-          ? await getAllQuestions()
-          : await getQuestionsBySlug(topicSlug, subtopic?.slug);
+          ? await getMockQuestions({ count: requestedCount })
+          : await getQuestionsBySlug(topicSlug, subtopic?.slug, poolSize);
         if (!active) return;
         setAllQuestions(questions);
       } catch (error) {
@@ -49,7 +59,7 @@ export default function QuizPage() {
     };
     fetchQuestions();
     return () => { active = false; };
-  }, [topicSlug, subtopic?.slug, isMockTest]);
+  }, [topicSlug, subtopic?.slug, isMockTest, count]);
 
   const filteredQuestions = useMemo(() => {
     const uniqueQuestions = getUniqueQuestions(allQuestions);
