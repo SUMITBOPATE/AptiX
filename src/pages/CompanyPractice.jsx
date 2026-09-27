@@ -14,6 +14,7 @@ export default function CompanyPractice() {
   const { slug } = useParams();
   const [questionCounts, setQuestionCounts] = useState({});
   const [countsLoaded, setCountsLoaded] = useState(false);
+  const [countsFailed, setCountsFailed] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -21,36 +22,50 @@ export default function CompanyPractice() {
 
   // Fetch question counts for each category
   useEffect(() => {
+    if (!company) return undefined;
+
+    let active = true;
+
     const fetchCounts = async () => {
-      if (!company) return;
+      setCountsFailed(false);
+      try {
+        const { data, error } = await supabase
+          .from('questions')
+          .select('category')
+          .eq('company', company.name);
 
-      const { data } = await supabase
-        .from('questions')
-        .select('category')
-        .eq('company', company.name);
+        // `error` was previously ignored, so a failed request left data null,
+        // skipped the block, and every category silently reported 0 questions
+        // — a wrong number reads as a real answer.
+        if (error) throw error;
+        if (!active) return;
 
-      if (data) {
-        const counts = {
-          all: data.length,
-          quantitative: data.filter(q => {
+        const rows = data || [];
+        setQuestionCounts({
+          all: rows.length,
+          quantitative: rows.filter(q => {
             const cat = q.category?.toLowerCase().trim();
             return cat === 'quantitative' || cat === 'quant';
           }).length,
-          reasoning: data.filter(q => {
+          reasoning: rows.filter(q => {
             const cat = q.category?.toLowerCase().trim();
             return cat === 'reasoning' || cat === 'logical reasoning';
           }).length,
-          verbal: data.filter(q => {
+          verbal: rows.filter(q => {
             const cat = q.category?.toLowerCase().trim();
             return cat === 'verbal' || cat === 'verbal reasoning';
           }).length,
-        };
-        setQuestionCounts(counts);
+        });
+      } catch (err) {
+        console.error('Unable to load question counts:', err);
+        if (active) setCountsFailed(true);
+      } finally {
+        if (active) setCountsLoaded(true);
       }
-      setCountsLoaded(true);
     };
 
     fetchCounts();
+    return () => { active = false; };
   }, [company]);
 
   if (!company) {
@@ -138,6 +153,18 @@ export default function CompanyPractice() {
       <div className="max-w-5xl mx-auto">
         {!countsLoaded ? (
           <LoadingState label="Loading questions" className="py-16" />
+        ) : countsFailed ? (
+          /* Checked before hasQuestions: a failed fetch leaves every count at 0,
+             which would otherwise render the "Coming Soon" panel and pass the
+             outage off as "no questions yet". */
+          <div className="rounded-xl border border-dashed border-red-300 dark:border-border bg-white dark:bg-surface p-8 text-center">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-text-strong">
+              Could not load questions
+            </h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-text-muted">
+              Check your connection and try again.
+            </p>
+          </div>
         ) : !hasQuestions ? (
           <div className="rounded-xl border border-dashed border-gray-300 dark:border-border bg-white dark:bg-surface p-8 text-center">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-text-strong">Coming Soon</h3>

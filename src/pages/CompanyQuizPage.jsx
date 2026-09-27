@@ -24,20 +24,29 @@ export default function CompanyQuizPage() {
 
   const [allQuestions, setAllQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
   const [answers, setAnswers] = useState([]);
 
   // Fetch questions for the company and category
   useEffect(() => {
+    if (!company) return undefined;
+
+    let active = true;
+
     const fetchQuestions = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('questions')
-        .select('*')
-        .eq('company', company.name);
+      setLoadFailed(false);
+      try {
+        const { data, error } = await supabase
+          .from('questions')
+          .select('*')
+          .eq('company', company.name);
 
-      if (data) {
-        let filtered = getUniqueQuestions(data);
+        if (error) throw error;
+        if (!active) return;
+
+        let filtered = getUniqueQuestions(data || []);
 
         // Filter by category if not 'all'
         if (categorySlug !== 'all') {
@@ -58,13 +67,18 @@ export default function CompanyQuizPage() {
         filtered = filtered.slice(0, questionsCount);
 
         setAllQuestions(filtered);
+      } catch (err) {
+        // `error` used to be dropped on the floor: a failed request left data
+        // null, skipped the block, and reported zero questions as a real result.
+        console.error('Unable to load questions:', err);
+        if (active) setLoadFailed(true);
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
     };
 
-    if (company) {
-      fetchQuestions();
-    }
+    fetchQuestions();
+    return () => { active = false; };
   }, [company, categorySlug, questionsCount]);
 
   // Difficulty was being read from the dialog config and then never applied,
@@ -235,6 +249,17 @@ export default function CompanyQuizPage() {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
         <LoadingState label="Loading questions" className="flex-1" />
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="min-h-dvh bg-bg flex flex-col relative">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
+          <p>Could not load questions. Check your connection and try again.</p>
+          <BackButton onClick={() => navigate(`/practice/company/${slug}`)} label="Go Back" />
+        </div>
       </div>
     );
   }

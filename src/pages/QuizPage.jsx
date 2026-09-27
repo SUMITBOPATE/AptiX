@@ -21,19 +21,34 @@ export default function QuizPage() {
 
   const [allQuestions, setAllQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
   const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
+    let active = true;
+
     const fetchQuestions = async () => {
       setLoading(true);
-      const questions = isMockTest
-        ? await getAllQuestions()
-        : await getQuestionsBySlug(topicSlug, subtopic?.slug);
-      setAllQuestions(questions);
-      setLoading(false);
+      setLoadFailed(false);
+      try {
+        const questions = isMockTest
+          ? await getAllQuestions()
+          : await getQuestionsBySlug(topicSlug, subtopic?.slug);
+        if (!active) return;
+        setAllQuestions(questions);
+      } catch (error) {
+        // Both loaders rethrow on a Supabase error. Unhandled, the rejection
+        // escaped and setLoading(false) never ran, so the quiz sat on its
+        // spinner permanently with no way back.
+        console.error('Unable to load questions:', error);
+        if (active) setLoadFailed(true);
+      } finally {
+        if (active) setLoading(false);
+      }
     };
     fetchQuestions();
+    return () => { active = false; };
   }, [topicSlug, subtopic?.slug, isMockTest]);
 
   const filteredQuestions = useMemo(() => {
@@ -244,6 +259,17 @@ export default function QuizPage() {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
         <LoadingState label="Loading questions" className="flex-1" />
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="min-h-dvh bg-bg flex flex-col relative">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
+          <p>Could not load questions. Check your connection and try again.</p>
+          <BackButton onClick={() => navigate(-1)} label="Go Back" />
+        </div>
       </div>
     );
   }
