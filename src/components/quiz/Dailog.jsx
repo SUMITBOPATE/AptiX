@@ -48,7 +48,13 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
   const [questionCount, setQuestionCount] = useState(minQuestions);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
 
-  const config = { subtopic: selectedSubtopic, selectedDifficulty, count: questionCount };
+  // In company mode the difficulty picker is hidden, so `selectedDifficulty` is
+  // still the untouched 'easy' default. Passing that through meant the quiz page
+  // filtered to Easy questions the visitor never asked for and could not see.
+  // Send 'all' instead so hiding the control also removes the restriction.
+  const effectiveDifficulty = isCompanyMode ? 'all' : selectedDifficulty;
+
+  const config = { subtopic: selectedSubtopic, selectedDifficulty: effectiveDifficulty, count: questionCount };
   const sliderPercent = ((questionCount - minQuestions) / (maxQuestions - minQuestions)) * 100;
   const estimatedTime = getEstimatedTime(selectedSubtopic, selectedDifficulty, questionCount);
 
