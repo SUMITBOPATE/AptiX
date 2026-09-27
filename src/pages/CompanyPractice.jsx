@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { getQuestionCounts } from '../lib/supabase';
 import { companiesData } from '../../data/companies';
 import SubtopicCard from '../components/topics/SubtopicCard';
 import Dialog from '../components/quiz/Dailog';
@@ -14,6 +14,7 @@ export default function CompanyPractice() {
   const { slug } = useParams();
   const [questionCounts, setQuestionCounts] = useState({});
   const [countsLoaded, setCountsLoaded] = useState(false);
+  const [countsFailed, setCountsFailed] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -21,36 +22,46 @@ export default function CompanyPractice() {
 
   // Fetch question counts for each category
   useEffect(() => {
+    if (!company) return undefined;
+
+    let active = true;
+
     const fetchCounts = async () => {
-      if (!company) return;
+      setCountsFailed(false);
+      try {
+        // Four head requests instead of one download. Postgres does the counting
+        // and the browser receives no question rows at all.
+        //
+        // Each category is passed as its canonical slug and expanded to every
+        // spelling the database may hold. This is why a count can now be slightly
+        // higher than before: the old JavaScript filter matched only two spellings
+        // per category and silently ignored rows stored as 'quantitative-aptitude'
+        // or 'logical-reasoning', so the cards understated what was available.
+        const [all, quantitative, reasoning, verbal] = await getQuestionCounts([
+          { company: company.name },
+          { company: company.name, category: 'quantitative-aptitude' },
+          { company: company.name, category: 'logical-reasoning' },
+          { company: company.name, category: 'verbal-ability' },
+        ]);
 
-      const { data } = await supabase
-        .from('questions')
-        .select('category')
-        .eq('company', company.name);
+        if (!active) return;
 
-      if (data) {
-        const counts = {
-          all: data.length,
-          quantitative: data.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            return cat === 'quantitative' || cat === 'quant';
-          }).length,
-          reasoning: data.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            return cat === 'reasoning' || cat === 'logical reasoning';
-          }).length,
-          verbal: data.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            return cat === 'verbal' || cat === 'verbal reasoning';
-          }).length,
-        };
-        setQuestionCounts(counts);
+        setQuestionCounts({
+          all: all.count,
+          quantitative: quantitative.count,
+          reasoning: reasoning.count,
+          verbal: verbal.count,
+        });
+      } catch (err) {
+        console.error('Unable to load question counts:', err);
+        if (active) setCountsFailed(true);
+      } finally {
+        if (active) setCountsLoaded(true);
       }
-      setCountsLoaded(true);
     };
 
     fetchCounts();
+    return () => { active = false; };
   }, [company]);
 
   if (!company) {
@@ -138,6 +149,18 @@ export default function CompanyPractice() {
       <div className="max-w-5xl mx-auto">
         {!countsLoaded ? (
           <LoadingState label="Loading questions" className="py-16" />
+        ) : countsFailed ? (
+          /* Checked before hasQuestions: a failed fetch leaves every count at 0,
+             which would otherwise render the "Coming Soon" panel and pass the
+             outage off as "no questions yet". */
+          <div className="rounded-xl border border-dashed border-red-300 dark:border-border bg-white dark:bg-surface p-8 text-center">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-text-strong">
+              Could not load questions
+            </h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-text-muted">
+              Check your connection and try again.
+            </p>
+          </div>
         ) : !hasQuestions ? (
           <div className="rounded-xl border border-dashed border-gray-300 dark:border-border bg-white dark:bg-surface p-8 text-center">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-text-strong">Coming Soon</h3>

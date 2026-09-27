@@ -20,19 +20,34 @@ function SubtopicPage() {
   const [isDialogOpen , setIsDialogOpen] = useState(false);
   const [cardGroups, setCardGroups] = useState({ cards: [], extraCards: [] });
   const [isLoading, setIsLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const navigate = useNavigate();
   const { topicSlug } = useParams();
 
   // Fetch questions for each subtopic
   useEffect(() => {
+    let active = true;
+
     const fetchCards = async () => {
       setIsLoading(true);
-      const rows = await getSubcategoryIndexRows(topicSlug);
-      setCardGroups(buildSubtopicCards(topicSlug, rows));
-      setIsLoading(false);
+      setLoadFailed(false);
+      try {
+        const rows = await getSubcategoryIndexRows(topicSlug);
+        if (!active) return;
+        setCardGroups(buildSubtopicCards(topicSlug, rows));
+      } catch (error) {
+        // getSubcategoryIndexRows rethrows Supabase errors. Without a catch the
+        // rejection escaped and setIsLoading never ran, so one failed request
+        // left this page on its spinner for good — no error, no retry.
+        console.error('Unable to load subtopics:', error);
+        if (active) setLoadFailed(true);
+      } finally {
+        if (active) setIsLoading(false);
+      }
     };
     fetchCards();
+    return () => { active = false; };
   }, [topicSlug]);
 
   const handleSelectedSubtopic = (subtopic)=>{
@@ -79,6 +94,12 @@ function SubtopicPage() {
             grid with no indication anything was happening. */}
         {isLoading ? (
           <LoadingState label="Loading topics" className="py-20" />
+        ) : loadFailed ? (
+          <div className="py-20 text-center">
+            <p className="text-base text-gray-600 dark:text-text-muted">
+              Could not load topics. Check your connection and try again.
+            </p>
+          </div>
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-3.5 gap-6">
       {allCards.map(({ card, count }) => (

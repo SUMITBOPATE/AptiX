@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getQuestions } from '../lib/supabase';
 import { companiesData } from '../../data/companies';
 import QuizHeader from '../components/quiz/QuizHeader';
 import QuizOption from '../components/quiz/QuizOption';
@@ -12,6 +12,15 @@ import BackButton from '../components/ui/BackButton.jsx';
 import ExitQuizDialog from '../components/quiz/ExitQuizDialog.jsx';
 import LoadingState from '../components/ui/LoadingState';
 
+// The route category is a short UI slug; the database stores longer canonical
+// slugs. Declared outside the component so it keeps the same identity between
+// renders and does not retrigger the fetch effect.
+const CATEGORY_SLUG_BY_ROUTE = {
+  quantitative: 'quantitative-aptitude',
+  reasoning: 'logical-reasoning',
+  verbal: 'verbal-ability',
+};
+
 export default function CompanyQuizPage() {
   const { slug, categorySlug } = useParams();
   const navigate = useNavigate();
@@ -19,52 +28,57 @@ export default function CompanyQuizPage() {
   const { state } = location;
 
   const company = companiesData.find(c => c.slug === slug);
-  const selectedDifficulty = state?.selectedDifficulty || 'easy';
+  // Defaulting to 'easy' meant a visitor who opened this URL directly, with no
+  // dialog state, was silently restricted to Easy questions and given no
+  // indication of it. 'all' is the honest default when nothing was chosen.
+  const selectedDifficulty = state?.selectedDifficulty || 'all';
   const questionsCount = state?.count || 10;
 
   const [allQuestions, setAllQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
   const [answers, setAnswers] = useState([]);
 
   // Fetch questions for the company and category
   useEffect(() => {
+    if (!company) return undefined;
+
+    let active = true;
+
+    // Difficulty filtering still runs in JavaScript (see the note in
+    // supabase.js about the difficulty column), so ask for extra rows. Limiting
+    // in SQL and filtering by difficulty afterwards is what previously made this
+    // quiz come up empty: the first N rows were taken regardless of difficulty,
+    // and if none of them happened to match, the visitor got "No questions".
+    const poolSize = Math.min(questionsCount * 3, 200);
+
     const fetchQuestions = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('questions')
-        .select('*')
-        .eq('company', company.name);
+      setLoadFailed(false);
+      try {
+        // Company, category and limit are all applied by Postgres. Previously
+        // this downloaded every question for the company and filtered in JS.
+        const rows = await getQuestions({
+          company: company.name,
+          category: CATEGORY_SLUG_BY_ROUTE[categorySlug],
+          limit: poolSize,
+        });
 
-      if (data) {
-        let filtered = getUniqueQuestions(data);
-
-        // Filter by category if not 'all'
-        if (categorySlug !== 'all') {
-          filtered = filtered.filter(q => {
-            const cat = q.category?.toLowerCase().trim();
-            if (categorySlug === 'quantitative') {
-              return cat === 'quantitative' || cat === 'quant';
-            } else if (categorySlug === 'reasoning') {
-              return cat === 'reasoning' || cat === 'logical reasoning';
-            } else if (categorySlug === 'verbal') {
-              return cat === 'verbal' || cat === 'verbal reasoning';
-            }
-            return false;
-          });
-        }
-
-        // Limit by question count
-        filtered = filtered.slice(0, questionsCount);
-
-        setAllQuestions(filtered);
+        if (!active) return;
+        setAllQuestions(rows);
+      } catch (err) {
+        // getQuestions rethrows on a database error. Unhandled, the rejection
+        // escaped and setLoading(false) never ran, leaving a permanent spinner.
+        console.error('Unable to load questions:', err);
+        if (active) setLoadFailed(true);
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
     };
 
-    if (company) {
-      fetchQuestions();
-    }
+    fetchQuestions();
+    return () => { active = false; };
   }, [company, categorySlug, questionsCount]);
 
   // Difficulty was being read from the dialog config and then never applied,
@@ -80,7 +94,14 @@ export default function CompanyQuizPage() {
     );
   };
 
-  const filteredQuestions = allQuestions.filter(matchesDifficulty);
+  // Order matters: filter by difficulty FIRST, then take the requested number.
+  // The old code did the opposite — it sliced inside the fetch and filtered
+  // afterwards — so asking for 10 Medium questions could return nothing even
+  // when the company had dozens.
+  const filteredQuestions = getUniqueQuestions(allQuestions.filter(matchesDifficulty)).slice(
+    0,
+    questionsCount
+  );
   const total = filteredQuestions.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -235,6 +256,17 @@ export default function CompanyQuizPage() {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
         <LoadingState label="Loading questions" className="flex-1" />
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="min-h-dvh bg-bg flex flex-col relative">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
+          <p>Could not load questions. Check your connection and try again.</p>
+          <BackButton onClick={() => navigate(`/practice/company/${slug}`)} label="Go Back" />
+        </div>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getAllQuestions, getQuestionsBySlug } from '../lib/supabase.js';
+import { getMockQuestions, getQuestionsBySlug } from '../lib/supabase.js';
 import QuizHeader from '../components/quiz/QuizHeader.jsx';
 import QuizOption from '../components/quiz/QuizOption.jsx';
 import ArrowLeft from '../icons/ArrowLeft';
@@ -21,20 +21,45 @@ export default function QuizPage() {
 
   const [allQuestions, setAllQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
   const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
+    let active = true;
+
+    const requestedCount = count || 10;
+    // Difficulty filtering still runs in JavaScript (see the note in
+    // supabase.js about the difficulty column), so the database is asked for
+    // extra rows. Applying a difficulty filter *after* a LIMIT would otherwise be
+    // able to return fewer questions than the visitor asked for.
+    const poolSize = Math.min(requestedCount * 3, 200);
+
     const fetchQuestions = async () => {
       setLoading(true);
-      const questions = isMockTest
-        ? await getAllQuestions()
-        : await getQuestionsBySlug(topicSlug, subtopic?.slug);
-      setAllQuestions(questions);
-      setLoading(false);
+      setLoadFailed(false);
+      try {
+        // Mock tests draw a random, balanced pool in the database. A topic quiz
+        // asks for that subtopic's rows only, already filtered by category and
+        // subcategory server-side.
+        const questions = isMockTest
+          ? await getMockQuestions({ count: requestedCount })
+          : await getQuestionsBySlug(topicSlug, subtopic?.slug, poolSize);
+        if (!active) return;
+        setAllQuestions(questions);
+      } catch (error) {
+        // Both loaders rethrow on a Supabase error. Unhandled, the rejection
+        // escaped and setLoading(false) never ran, so the quiz sat on its
+        // spinner permanently with no way back.
+        console.error('Unable to load questions:', error);
+        if (active) setLoadFailed(true);
+      } finally {
+        if (active) setLoading(false);
+      }
     };
     fetchQuestions();
-  }, [topicSlug, subtopic?.slug, isMockTest]);
+    return () => { active = false; };
+  }, [topicSlug, subtopic?.slug, isMockTest, count]);
 
   const filteredQuestions = useMemo(() => {
     const uniqueQuestions = getUniqueQuestions(allQuestions);
@@ -244,6 +269,17 @@ export default function QuizPage() {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
         <LoadingState label="Loading questions" className="flex-1" />
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="min-h-dvh bg-bg flex flex-col relative">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
+          <p>Could not load questions. Check your connection and try again.</p>
+          <BackButton onClick={() => navigate(-1)} label="Go Back" />
+        </div>
       </div>
     );
   }

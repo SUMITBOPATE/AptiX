@@ -4,7 +4,7 @@ import MockTest from '../components/topics/MockTest'
 import Companies from '../components/companies/Companies'
 import { topicsData } from '../../data/topicData';
 import { companiesData } from '../../data/companies';
-import { getQuestionStatistics } from '../lib/supabase';
+import { getQuestionCounts } from '../lib/supabase';
 
 function Topics() {
   const [questionStats, setQuestionStats] = useState(null);
@@ -14,13 +14,32 @@ function Topics() {
     let active = true;
 
     const loadStatistics = async () => {
-      const categorySlugs = topicsData.map(topic => topic.slug);
-      const companyNames = companiesData.map(company => company.name);
+      // One filter set per card. getQuestionCounts runs them all at once, and
+      // each one is a head request: Postgres does the COUNT(*) and the browser
+      // receives no rows at all. Previously every question row in the table was
+      // downloaded just to be counted in JavaScript.
+      const filterSets = [
+        ...topicsData.map((topic) => ({ category: topic.slug })),
+        ...companiesData.map((company) => ({ company: company.name })),
+      ];
 
       try {
-        const stats = await getQuestionStatistics(categorySlugs, companyNames);
+        const results = await getQuestionCounts(filterSets);
         if (!active) return;
-        setQuestionStats(stats);
+
+        // Split the single result list back into the two shapes the cards read.
+        const categoryResults = results.slice(0, topicsData.length);
+        const companyResults = results.slice(topicsData.length);
+
+        setQuestionStats({
+          total: categoryResults.reduce((sum, entry) => sum + entry.count, 0),
+          byCategory: Object.fromEntries(
+            topicsData.map((topic, index) => [topic.slug, categoryResults[index].count])
+          ),
+          byCompany: Object.fromEntries(
+            companiesData.map((company, index) => [company.name, companyResults[index].count])
+          ),
+        });
       } catch (error) {
         console.error('Unable to load question statistics:', error);
         // Previously this only logged, which left every card stuck on
