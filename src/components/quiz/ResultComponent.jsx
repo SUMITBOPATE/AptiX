@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import { CheckmarkCircle02Icon, CancelCircleIcon, ArrowRight01Icon, RefreshIcon, HomeIcon, TimeIcon } from '@hugeicons/core-free-icons';
+import { COPY } from '../../lib/copy';
 
 const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopics }) => {
   // Derive score from answers array
@@ -101,17 +102,17 @@ const ResultComponent = ({ answers, timeTaken, onReview, onRestart, onBackToTopi
         <div className="max-w-2xl mx-auto flex gap-3">
           <button
             onClick={onRestart}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-accent-contrast rounded-lg font-medium text-sm hover:bg-lime-300 t-interactive"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-accent-contrast rounded-lg font-medium text-sm hover:bg-lime-300 t-interactive inset-ring-1 inset-ring-white/30 text-shadow-2xs"
           >
             <HugeiconsIcon icon={RefreshIcon} className="w-4 h-4" />
-            Retry Quiz
+            {COPY.retryQuiz}
           </button>
           <button
             onClick={onBackToTopics}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-200 transition"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-200 transition inset-ring-1 inset-ring-black/10 text-shadow-xs"
           >
             <HugeiconsIcon icon={HomeIcon} className="w-4 h-4" />
-            Back to Topics
+            {COPY.backToTopics}
           </button>
         </div>
       </div>

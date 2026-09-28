@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Book04Icon, TimerIcon } from '@hugeicons/core-free-icons'
 import Button from '../ui/Button'
+import { COPY } from '../../lib/copy';
 import Reveal from '../ui/Reveal'
 import Spinner from '../ui/Spinner';
 
@@ -21,7 +22,7 @@ export default function MockTest({ questionCount = null, isStatsLoading = false 
 
         <div className="bg-white dark:bg-surface rounded-2xl border border-gray-100 dark:border-border p-8 shadow-sm flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-6 flex-1">
-            <div className="relative shrink-0">
+            <div className="shrink-0">
               {/* was text-gray-300 — 1.47:1 on white, effectively invisible */}
               <svg
                 className="w-12 h-12 text-gray-500 dark:text-text-muted"
@@ -32,9 +33,6 @@ export default function MockTest({ questionCount = null, isStatsLoading = false 
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
                 <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
               </svg>
-              <div className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                Premium
-              </div>
             </div>
 
             <div>
@@ -71,7 +69,7 @@ export default function MockTest({ questionCount = null, isStatsLoading = false 
 
           <div className="shrink-0 w-full md:w-auto">
             <Button to="/practice/mock-test" className="w-full md:w-auto">
-              Launch Simulation
+              {COPY.launchSimulation}
             </Button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Book04Icon } from '@hugeicons/core-free-icons'
 import Button from '../ui/Button'
+import { COPY } from '../../lib/copy';
 import Spinner from '../ui/Spinner';
 
 export default function CompanyCard({ company, questionCount = null, isStatsLoading = false }) {
@@ -53,7 +54,7 @@ export default function CompanyCard({ company, questionCount = null, isStatsLoad
             showArrow={false}
             className="w-full cursor-not-allowed bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-400"
           >
-            Coming Soon
+            {COPY.comingSoon}
           </Button>
         ) : (
           <Button to={`/practice/company/${slug}`} size="sm" className="w-full">

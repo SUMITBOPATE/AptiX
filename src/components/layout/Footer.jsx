@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom'
+import { NAV_LINKS } from '../../lib/copy'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
-  // These were pointing at /topics and /practice/math, neither of which is a
-  // route — the section is rendered on the home page, so link to the anchors.
-  const footerLinks = [
-    { to: '/#topics-section', label: 'Practice' },
-    { to: '/#mock-test-section', label: 'Mock Test' },
-    { to: '/#companies-section', label: 'Companies' },
-  ]
+  // Anchors on the home page, not routes. These used to be declared here AND in
+  // the navbar as two independent lists, which is how one of them ended up
+  // pointing at /topics — a route that does not exist — and 404'd. Both now read
+  // NAV_LINKS, so they cannot drift apart again.
+  const footerLinks = NAV_LINKS.map(({ target, label }) => ({
+    to: `/#${target}`,
+    label,
+  }))
 
   return (
     <footer className="relative z-30 border-t border-dashed border-gray-200 py-6 px-4 bg-white">

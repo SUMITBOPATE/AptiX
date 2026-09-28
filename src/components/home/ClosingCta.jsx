@@ -1,4 +1,5 @@
-import Button from '../ui/Button';
+import Button from '../ui/Button'
+import { COPY } from '../../lib/copy';
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
@@ -23,7 +24,7 @@ export default function ClosingCta({ onStart }) {
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button onClick={onStart} className="w-full sm:w-auto">
-            Start Learning
+            {COPY.startLearning}
           </Button>
           {/* Both CTAs route through the same reduced-motion-aware helper rather
               than a hardcoded `behavior: 'smooth'`, which is what this had
@@ -34,7 +35,7 @@ export default function ClosingCta({ onStart }) {
             onClick={() => scrollTo('mock-test-section')}
             className="w-full sm:w-auto"
           >
-            Try a Mock Test
+            {COPY.tryMockTest}
           </Button>
         </div>
       </div>

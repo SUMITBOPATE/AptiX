@@ -6,7 +6,7 @@ export default function BackButton({ onClick, label = 'Back', compact = false, c
     <button
       type="button"
       onClick={onClick}
-      className={`press group inline-flex items-center gap-2 rounded-full border-0 bg-transparent p-0 text-sm font-semibold text-text-strong shadow-none ${className}`}
+      className={`press group inline-flex items-center gap-2 rounded-full border-0 bg-transparent p-0 text-sm font-semibold text-text-strong shadow-none text-shadow-xs ${className}`}
       aria-label={label}
     >
       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-2 text-text-muted transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-primary-strong">

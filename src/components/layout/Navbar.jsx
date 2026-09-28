@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { NAV_LINKS } from '../../lib/copy'
 
 const getInitialTheme = () => {
   const savedTheme = localStorage.getItem('aptix-theme')
@@ -8,11 +9,8 @@ const getInitialTheme = () => {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
 }
 
-const navLinks = [
-  { hash: 'topics-section', label: 'Practice' },
-  { hash: 'mock-test-section', label: 'Mock Test' },
-  { hash: 'companies-section', label: 'Companies' },
-]
+// Shared with the footer so the two lists cannot drift apart.
+const navLinks = NAV_LINKS.map(({ target, label }) => ({ hash: target, label }))
 
 const EASE = '[transition-timing-function:var(--ease-out)]'
 
@@ -20,7 +18,6 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [isDark, setIsDark] = useState(getInitialTheme)
-  const [isScrolled, setIsScrolled] = useState(false)
   const toggleRef = useRef(null)
   const firstLinkRef = useRef(null)
   const { pathname, hash } = useLocation()
@@ -97,31 +94,17 @@ export default function Navbar() {
     setIsClosing(false)
   }, [pathname, hash])
 
-  // One boolean for the whole scroll, not a live offset. The updater returns
-  // the current value when the threshold is unchanged, so the re-render happens
-  // twice per page (over the line, back under it) instead of on every tick.
-  useEffect(() => {
-    const onScroll = () => {
-      setIsScrolled((current) => {
-        const next = window.scrollY > 24
-        return current === next ? current : next
-      })
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  // The scroll listener that used to shift the nav edges toward the centre has
+  // been removed, along with the boolean it fed. The edges are now ordinary flex
+  // children that never move.
 
   const menuVisible = isMenuOpen
 
   return (
-    <header
-      data-scrolled={isScrolled ? 'true' : undefined}
-      className="theme-navbar fixed top-0 left-0 right-0 z-30 bg-white border-b border-dashed border-gray-200 dark:border-border"
-    >
+    <header className="theme-navbar fixed top-0 left-0 right-0 z-30 bg-white border-b border-dashed border-gray-200 dark:border-border">
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center h-16">
         {/* Logo */}
-        <Link to="/" className="nav-edge-left text-2xl font-bold">
+        <Link to="/" className="text-2xl font-bold">
           <span className="text-black dark:text-text-strong text-3xl">Apti</span>
           {/* was text-lime-500 — 1.98:1 on white, under the 3:1 floor for
               large text. */}
@@ -142,7 +125,7 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="nav-edge-right flex items-center gap-1">
+        <div className="flex items-center gap-1">
           {/* Plain action button, not a toggle button: the accessible name says
               what activating it will do. Combining aria-pressed with a label
               that flips to the opposite action made both the name AND the state
@@ -158,7 +141,7 @@ export default function Navbar() {
                cannot drift when the ramp changes. They read at 1.24:1 and
                1.20:1 against their neighbours, which is enough separation for a
                28px switch. */
-            className="theme-toggle relative h-7 w-[42px] cursor-pointer rounded-full border border-[#deded8] bg-[#f5f5f0] hover:border-lime-400/50 hover:bg-lime-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 dark:border-[#424936] dark:bg-[#24291d] dark:hover:border-lime-400/40 dark:hover:bg-[#2a301f] dark:focus-visible:ring-offset-[var(--color-bg)]"
+            className="theme-toggle relative h-7 w-[42px] cursor-pointer rounded-full border border-[#deded8] bg-[#f5f5f0] hover:border-lime-400/50 hover:bg-lime-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 dark:border-[#424936] dark:bg-[#24291d] dark:hover:border-lime-400/40 dark:hover:bg-[#2a301f] dark:focus-visible:ring-offset-[var(--color-bg)] inset-ring-1 inset-ring-black/10"
           >
             <span
               className="theme-toggle-knob absolute left-[3px] flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] dark:border-lime-400/15 dark:bg-[#303724]"
@@ -176,7 +159,7 @@ export default function Navbar() {
           <button
             ref={toggleRef}
             type="button"
-            className="press md:hidden p-2 text-gray-700 dark:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--color-bg)]"
+            className="press md:hidden p-2 text-gray-700 dark:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--color-bg)] rounded-md hover:inset-ring-1 hover:inset-ring-black/10"
             onClick={() => (menuVisible ? closeMenu() : openMenu())}
             aria-label={menuVisible ? 'Close menu' : 'Open menu'}
             aria-expanded={menuVisible}

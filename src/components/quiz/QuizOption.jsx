@@ -39,7 +39,7 @@ export default function QuizOption({ index, text, selected, onSelect, state = 'd
     <button
       onClick={onSelect}
       disabled={disabled}
-      className={`w-full flex items-center gap-3.5 px-4 py-3.5 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left t-interactive active:scale-[0.99] ${borderColor} ${bgColor} ${textColor} ${!disabled ? hoverClass : 'opacity-60 cursor-not-allowed'}`}
+      className={`w-full flex items-center gap-3.5 px-4 py-3.5 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left t-interactive active:scale-[0.99] inset-ring-1 inset-ring-black/10 text-shadow-xs ${borderColor} ${bgColor} ${textColor} ${!disabled ? hoverClass : 'opacity-60 cursor-not-allowed'}`}
     >
       {/* Letter badge */}
       <span

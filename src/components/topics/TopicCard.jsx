@@ -1,4 +1,5 @@
-import Button from '../ui/Button';
+import Button from '../ui/Button'
+import { COPY } from '../../lib/copy';
 import { HugeiconsIcon } from '@hugeicons/react'
 import {Book04Icon,HelpCircleIcon} from '@hugeicons/core-free-icons';
 import Spinner from '../ui/Spinner';
@@ -66,7 +67,7 @@ export default function TopicCard({ topic, questionCount = null, isStatsLoading 
           element per card and the accessible name carries the topic. */}
       <div className="mt-auto pt-6">
         <Button to={`/practice/${slug}`} className="w-full">
-          Start Learning
+          {COPY.startLearning}
           <span className="sr-only"> — {title}</span>
         </Button>
       </div>

@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getMockQuestions, getQuestionsBySlug } from '../lib/supabase.js';
+import { COPY } from '../lib/copy';
+import { getQuestionOptions, getCorrectOptionText, isCorrectOption } from '../lib/answers';
 import QuizHeader from '../components/quiz/QuizHeader.jsx';
-import QuizOption from '../components/quiz/QuizOption.jsx';
-import ArrowLeft from '../icons/ArrowLeft';
-import ArrowRight from '../icons/ArrowRight';
+import QuizNav from '../components/quiz/QuizNav.jsx';
+import QuizQuestion from '../components/quiz/QuizQuestion.jsx';
 import ResultComponent from "../components/quiz/ResultComponent.jsx"
 import { getUniqueQuestions } from '../utils/questions.js';
-import BackButton from '../components/ui/BackButton.jsx';
+import BackButton from '../components/ui/BackButton';
 import ExitQuizDialog from '../components/quiz/ExitQuizDialog.jsx';
+
 import LoadingState from '../components/ui/LoadingState';
 
 export default function QuizPage() {
@@ -134,30 +136,6 @@ export default function QuizPage() {
 
   const currentQuestion = filteredQuestions[currentIndex];
 
-  const getQuestionOptions = (question) => [
-    question?.option_a,
-    question?.option_b,
-    question?.option_c,
-    question?.option_d,
-  ];
-
-  const normalizeAnswer = (value) => `${value ?? ''}`.trim().toLowerCase();
-
-  // Questions imported from different sources store the answer either as an
-  // option letter ("A") or as the option text itself ("20%"). Resolve both.
-  const getCorrectOptionText = (question) => {
-    const options = getQuestionOptions(question);
-    const rawAnswer = `${question?.correct_answer ?? question?.correctAnswer ?? ''}`.trim();
-    const letterMatch = rawAnswer.match(/^(?:option\s*)?([a-d])(?:[.)])?$/i);
-
-    if (letterMatch) return options[letterMatch[1].toUpperCase().charCodeAt(0) - 65];
-
-    return options.find(option => normalizeAnswer(option) === normalizeAnswer(rawAnswer));
-  };
-
-  const isCorrectOption = (option, question = currentQuestion) =>
-    normalizeAnswer(option) === normalizeAnswer(getCorrectOptionText(question));
-
   const handleSelect = (option) => {
     // If question is already resolved, don't allow more selections
     if (questionResolved[currentIndex]) return;
@@ -171,7 +149,7 @@ export default function QuizPage() {
     }
 
     // If this is the correct answer
-    if (isCorrectOption(option)) {
+    if (isCorrectOption(option, currentQuestion)) {
       setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
       setQuestionResolved((prev) => ({ ...prev, [currentIndex]: true }));
       return;
@@ -229,7 +207,7 @@ export default function QuizPage() {
       return {
         questionId: question.id,
         questionText: question.question,
-        options: [question.option_a, question.option_b, question.option_c, question.option_d],
+        options: getQuestionOptions(question),
         userAnswer: revealedAnswers[index] ? 'N/A' : selectedAnswers[index],
         correctAnswer: getCorrectOptionText(question),
         isCorrect: !revealedAnswers[index] && isCorrectOption(selectedAnswers[index], question),
@@ -268,7 +246,7 @@ export default function QuizPage() {
   if (loading) {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
-        <LoadingState label="Loading questions" className="flex-1" />
+        <LoadingState label={COPY.loadingQuestions} className="flex-1" />
       </div>
     );
   }
@@ -277,8 +255,8 @@ export default function QuizPage() {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
-          <p>Could not load questions. Check your connection and try again.</p>
-          <BackButton onClick={() => navigate(-1)} label="Go Back" />
+          <p>{COPY.loadFailed}</p>
+          <BackButton onClick={() => navigate(-1)} label={COPY.goBack} />
         </div>
       </div>
     );
@@ -288,8 +266,8 @@ export default function QuizPage() {
     return (
       <div className="min-h-dvh bg-bg flex flex-col relative">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text">
-          <p>No questions found for this configuration.</p>
-          <BackButton onClick={() => navigate(-1)} label="Go Back" />
+          <p>{COPY.noQuestions}</p>
+          <BackButton onClick={() => navigate(-1)} label={COPY.goBack} />
         </div>
       </div>
     );
@@ -350,153 +328,34 @@ export default function QuizPage() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-4 gap-4 relative z-10">
-
-        {/* Question card with footer */}
-        <div className="w-full min-h-[350px] sm:min-h-[400px] max-w-[700px] bg-white dark:bg-surface border-1 border-dashed border-gray-200 dark:border-border p-4 sm:p-6 flex flex-col gap-3">
-          {/* Subtopic & Difficulty - Mobile visible */}
-          <div className="flex items-center gap-2 sm:hidden">
-            <span className="text-xs font-medium text-text-muted">{subtopic?.name}</span>
-            <span className="text-gray-300">•</span>
-            <span className="text-xs font-medium text-text-muted capitalize">{selectedDifficulty}</span>
-          </div>
-
-          <p className="text-xs font-bold tracking-[0.08em] text-text-muted uppercase m-0">
-            QUESTION {currentIndex + 1} OF {total}
-          </p>
-
-          <p className="text-base font-medium text-text-strong leading-relaxed m-0">
-            {currentQuestion.question}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-            {[currentQuestion.option_a, currentQuestion.option_b, currentQuestion.option_c, currentQuestion.option_d].map((option, i) => {
-              const isCorrect = isCorrectOption(option);
-              const isAttempted = (attemptedAnswers[currentIndex] || []).includes(option);
-              const isSelected = selectedAnswers[currentIndex] === option;
-              let optionState = 'default';
-              
-              if (!isMockTest) {
-                if (isSelected && isCorrect) {
-                  optionState = 'correct';
-                } else if (isAttempted && !isCorrect) {
-                  optionState = 'wrong';
-                } else if (showAnswer && isCorrect) {
-                  optionState = 'correct';
-                }
-              }
-
-              return (
-                <QuizOption
-                  key={i}
-                  index={i}
-                  text={option}
-                  selected={isSelected}
-                  state={optionState}
-                  disabled={isMockTest ? questionResolved[currentIndex] : questionResolved[currentIndex] && !isCorrect}
-                  onSelect={() => handleSelect(option)}
-                />
-              );
-            })}
-          </div>
-
-          {/* Feedback and Show Answer Button */}
-          <div className="space-y-2 mt-2">
-            {!isMockTest && selectedAnswers[currentIndex] && (
-              <div
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  isCorrectOption(selectedAnswers[currentIndex])
-                    ? 'bg-[#f0fdf4] dark:bg-green-500/10 text-primary-strong dark:text-green-300 border border-[#bbf7d0] dark:border-green-500/40'
-                    : 'bg-[#fff5f5] dark:bg-red-500/10 text-danger dark:text-red-300 border border-[#fecaca] dark:border-red-500/40'
-                }`}
-              >
-                {isCorrectOption(selectedAnswers[currentIndex])
-                  ? '✓ Correct!'
-                  : `✗ Incorrect — Answer: ${getCorrectOptionText(currentQuestion)}`}
-              </div>
-            )}
-
-            {!isMockTest && !questionResolved[currentIndex] && (
-              <div className="relative">
-                {showAnswerHint && (
-                  <div
-                    role="tooltip"
-                    className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg"
-                  >
-                    Please click one option above first
-                    <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                  </div>
-                )}
-                <button
-                  onClick={handleShowAnswer}
-                  className="w-full px-4 py-2.5 rounded-lg text-sm font-medium border border-dashed border-text-muted text-text-muted hover:bg-surface-2 t-interactive"
-                >
-                  Show Answer
-                </button>
-              </div>
-            )}
-
-            {/* Explanation Toggle */}
-            {!isMockTest && currentQuestion.explanation && selectedAnswers[currentIndex] && (
-              <div>
-                <button
-                  onClick={() => setShowExplanation(!showExplanation)}
-                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition"
-                >
-                  <span>📖 Explanation</span>
-                    <span className={`transform transition-transform ${showExplanation ? 'rotate-180' : ''}`}>
-                      ▼
-                    </span>
-                  </button>
-
-                  {/* Explanation Content */}
-                  {showExplanation && (
-                    <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600">
-                      {currentQuestion.explanation}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-        </div>
+        <QuizQuestion
+          question={currentQuestion}
+          currentIndex={currentIndex}
+          total={total}
+          metaLabels={[subtopic?.name, selectedDifficulty]}
+          selectedAnswer={selectedAnswers[currentIndex]}
+          attemptedOptions={attemptedAnswers[currentIndex] ?? []}
+          isResolved={Boolean(questionResolved[currentIndex])}
+          showAnswer={showAnswer}
+          revealFeedback={!isMockTest}
+          showAnswerHint={showAnswerHint}
+          onSelect={handleSelect}
+          onShowAnswer={handleShowAnswer}
+          explanation={isMockTest ? null : currentQuestion.explanation}
+          showExplanation={showExplanation}
+          onToggleExplanation={() => setShowExplanation(!showExplanation)}
+        />
       </main>
 
-      {/* Footer with Navigation */}
-      <footer className="theme-quiz-footer border-t border-dashed border-gray-200 dark:border-white/[0.05] bg-gray-50 px-4 sm:px-6 py-3">
-        <div className="max-w-[700px] mx-auto flex items-center justify-between">
-          <button
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-text-strong hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Previous
-          </button>
-
-          <span className="text-xs text-text-muted tabular-nums">
-            {currentIndex + 1} / {total}
-          </span>
-
-          {isLastQuestion ? (
-            <button
-              onClick={() => handleFinishQuiz()}
-              disabled={!hasAttemptedCurrentQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-accent-contrast bg-lime-400 hover:bg-lime-300 disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
-            >
-              Finish
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              onClick={handleNext}
-              disabled={!hasAttemptedCurrentQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer text-accent-ink hover:bg-surface disabled:opacity-[0.35] disabled:cursor-not-allowed t-interactive"
-            >
-              Next
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </footer>
+      <QuizNav
+        currentIndex={currentIndex}
+        total={total}
+        isLastQuestion={isLastQuestion}
+        canAdvance={hasAttemptedCurrentQuestion}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onFinish={() => handleFinishQuiz()}
+      />
     </div>
   );
 }

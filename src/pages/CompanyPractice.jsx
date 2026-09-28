@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getQuestionCounts } from '../lib/supabase';
 import { companiesData } from '../../data/companies';
+import { COPY } from '../lib/copy';
 import SubtopicCard from '../components/topics/SubtopicCard';
 import Dialog from '../components/quiz/Dailog';
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -148,7 +149,7 @@ export default function CompanyPractice() {
 
       <div className="max-w-5xl mx-auto">
         {!countsLoaded ? (
-          <LoadingState label="Loading questions" className="py-16" />
+          <LoadingState label={COPY.loadingQuestions} className="py-16" />
         ) : countsFailed ? (
           /* Checked before hasQuestions: a failed fetch leaves every count at 0,
              which would otherwise render the "Coming Soon" panel and pass the
@@ -163,7 +164,7 @@ export default function CompanyPractice() {
           </div>
         ) : !hasQuestions ? (
           <div className="rounded-xl border border-dashed border-gray-300 dark:border-border bg-white dark:bg-surface p-8 text-center">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-text-strong">Coming Soon</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-text-strong">{COPY.comingSoon}</h3>
             <p className="mt-1 text-sm text-gray-600 dark:text-text-muted">
               {company.name} questions are being added. Check back shortly.
             </p>

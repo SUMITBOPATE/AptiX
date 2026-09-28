@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Dialog from '../components/quiz/Dailog';
+import { COPY } from '../lib/copy';
 import BackButton from '../components/ui/BackButton';
 
 const mockTest = {
-  name: 'Mixed Mock Test',
+  name: COPY.mixedMockTest,
   slug: 'mock-test',
   description: 'A randomized mix of quantitative, reasoning, and verbal questions.',
   icon: 'M',
@@ -32,7 +33,7 @@ export default function MockTestPage() {
           </p>
           <button
             onClick={() => setIsDialogOpen(true)}
-            className="mt-5 px-5 py-2.5 rounded-xl bg-lime-400 text-slate-950 font-semibold hover:bg-lime-300 transition-colors"
+            className="mt-5 px-5 py-2.5 rounded-xl bg-lime-400 text-slate-950 font-semibold hover:bg-lime-300 transition-colors inset-ring-1 inset-ring-white/30 text-shadow-2xs"
           >
             Configure mock test
           </button>
