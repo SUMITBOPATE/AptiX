@@ -616,6 +616,10 @@ a {
   appearance: none;
   width: 20px;
   height: 20px;
+  /* Zero, because the runnable track is the full height of the input and the
+     thumb therefore centres on it. Not a leftover: a non-zero value here is what
+     pushes the dot off the line. */
+  margin-top: 0;
   border-radius: 50%;
   background: #fff;
   border: 2.5px solid var(--color-primary);
@@ -633,19 +637,32 @@ a {
 .dialog-slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
+  margin-top: 0;
   border-radius: 50%;
   background: #fff;
   border: 2.5px solid var(--color-primary);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
   cursor: pointer;
 }
+/* The runnable track is the full height of the input, not 5px.
+
+   With a 5px runnable track, WebKit aligns the 20px thumb to the top edge of
+   that track rather than centring it, and the only correction is a negative
+   margin-top on the thumb — a fudge that then has to be compensated for
+   separately on the visible line. At full height the browser centres the thumb
+   on the input, and .dialog-slider-track is centred on that same box, so the
+   line and the dot cannot disagree. */
 .dialog-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 20px;
   background: transparent;
-  height: 5px;
+  border: none;
 }
 .dialog-slider::-moz-range-track {
+  width: 100%;
+  height: 20px;
   background: transparent;
-  height: 5px;
+  border: none;
 }
 
 /* Dark-mode slider thumb: a restrained olive surface with the lime accent. */

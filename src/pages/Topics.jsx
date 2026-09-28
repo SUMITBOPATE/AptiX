@@ -4,11 +4,47 @@ import MockTest from '../components/topics/MockTest'
 import Companies from '../components/companies/Companies'
 import { topicsData } from '../../data/topicData';
 import { companiesData } from '../../data/companies';
-import { getQuestionCounts } from '../lib/supabase';
+import { getQuestionCounts, getSubcategoryIndexRows } from '../lib/supabase';
+import { buildSubtopicCards } from '../lib/subtopics';
 
 function Topics() {
   const [questionStats, setQuestionStats] = useState(null);
   const [statsFailed, setStatsFailed] = useState(false);
+  const [subtopicCounts, setSubtopicCounts] = useState(null);
+
+  // How many subtopic cards each topic actually leads to. This is not the
+  // declared subcategory count: the subtopic pages also generate a card for
+  // every remaining subcategory in the question bank, so a topic declaring five
+  // subtopics can currently lead to twenty-nine. Counting them here keeps the
+  // card honest about what the visitor will find.
+  useEffect(() => {
+    let active = true;
+
+    const loadSubtopicCounts = async () => {
+      try {
+        // One index request per topic, in parallel. Each selects four columns
+        // over that category only, so the payload is small.
+        const rows = await Promise.all(topicsData.map((topic) => getSubcategoryIndexRows(topic.slug)));
+        if (!active) return;
+
+        setSubtopicCounts(
+          Object.fromEntries(
+            topicsData.map((topic, index) => {
+              const { cards, extraCards } = buildSubtopicCards(topic.slug, rows[index]);
+              return [topic.slug, cards.length + extraCards.length];
+            })
+          )
+        );
+      } catch (error) {
+        // The cards fall back to the declared count, which is a real number
+        // rather than a spinner that never resolves.
+        console.error('Unable to load subtopic counts:', error);
+      }
+    };
+
+    loadSubtopicCounts();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -79,6 +115,7 @@ function Topics() {
             topic={topic}
             questionCount={statsFailed ? null : questionStats?.byCategory?.[topic.slug] ?? null}
             isStatsLoading={isStatsLoading}
+            subtopicCount={subtopicCounts?.[topic.slug] ?? null}
           />
         ))}
       </div>

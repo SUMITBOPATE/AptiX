@@ -200,7 +200,7 @@ export default function CompanyPractice() {
           }}
           onStart={handleStartQuiz}
           hideDifficulty={true}
-          totalQuestions={questionCounts[selectedCategory.slug] || 50}
+          totalQuestions={questionCounts[selectedCategory.slug] ?? 1}
         />
       )}
     </div>

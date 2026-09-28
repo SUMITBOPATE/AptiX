@@ -173,30 +173,51 @@ export const getQuestions = async ({ limit, ...filters } = {}) => {
  * `db-max-rows` limit happened to be (1000 by default on Supabase) — a wrong
  * question pool with no error to explain it.
  *
- * Now the database does the selection and returns only a bounded pool.
- * `order('random')` is the shuffle, in Postgres, rather than in the browser.
+ * This one bounds the pool, but the shuffle is in JavaScript rather than in
+ * Postgres, and that is not a stylistic choice. `order('random')` does NOT ask
+ * Postgres for a random order: PostgREST reads the string as a column name, the
+ * query fails with `column questions.random does not exist`, and the mock test
+ * showed the generic "Could not load questions" message as if the network had
+ * dropped. The usual spelling, `order('random()')`, is rejected by this
+ * PostgREST version too — `failed to parse order (random().asc)` — and the
+ * `random_key` column that database/optimizeIndexes.sql adds does not exist on
+ * this project yet.
+ *
+ * So: one cheap head request for the row count, a random window of the table
+ * ordered by `id`, then a shuffle of that window in JS. A random window is not a
+ * uniform sample, and it is the trade for not needing that migration. Apply
+ * database/optimizeIndexes.sql and switch this to the `random_key` keyset for a
+ * uniform draw that stays cheap on a large table.
  *
  * The pool is larger than `count` on purpose: the caller mixes several groups
  * (each company, and quant / reasoning / verbal) round-robin so a short mock test
  * still covers every subject. That mixing needs headroom, but not the whole
  * table, so the pool is capped at a multiple of `count`.
- *
- * Cost note: `order('random')` makes Postgres sort the matching rows. That is
- * cheap at this table size and far cheaper than shipping every row, but on a very
- * large table the scalable version is a pre-shuffled `random_key` column indexed
- * and ordered on — see database/optimizeIndexes.sql.
  */
 export const getMockQuestions = async ({ count = 10, poolMultiplier = 3, poolCap = 200 } = {}) => {
   const poolSize = Math.min(count * poolMultiplier, poolCap);
 
+  const total = await getQuestionCount({});
+  const maxOffset = Math.max(total - poolSize, 0);
+  const offset = Math.floor(Math.random() * (maxOffset + 1));
+
   const { data, error } = await supabase
     .from('questions')
     .select('*')
-    .order('random')
-    .limit(poolSize);
+    .order('id')
+    .range(offset, offset + poolSize - 1);
 
   throwOnError(error, 'mock questions');
-  return data || [];
+
+  // Shuffled in place: the window is ordered by id, so without this the pool
+  // would arrive in id order and the caller would be mixing a sorted list.
+  const rows = data || [];
+  for (let i = rows.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rows[i], rows[j]] = [rows[j], rows[i]];
+  }
+
+  return rows;
 };
 
 /* ------------------------------------------------------------------------- *

@@ -6,7 +6,6 @@ export const topicsData = [
   {
     title: "Quantitative Aptitude",
     slug: "quantitative-aptitude",
-    details: "5 core topics",
     description: "Master numerical and mathematical reasoning skills",
     isFeatured: true,
     detailsClass: 'text-secondary-dark',
@@ -102,7 +101,6 @@ export const topicsData = [
   {
     title: "Logical Reasoning",
     slug: "logical-reasoning",
-    details: "5 core topics",
     description: "Develop logical thinking and analytical problem-solving",
     isFeatured: false,
     detailsClass: 'text-orange-600',
@@ -198,7 +196,6 @@ export const topicsData = [
   {
     title: "Verbal Ability",
     slug: "verbal-ability",
-    details: "5 core topics",
     description: "Enhance language skills and reading comprehension",
     isFeatured: false,
     detailsClass: 'text-green-600',

@@ -153,10 +153,7 @@ function SubtopicPage() {
     selectedSubtopic={selectedSubtopic}
     onClose={handleCloseDialog}
     onStart={handleStartQuiz}
-    totalQuestions={Math.max(
-      allCards.find(({ card }) => card.slug === selectedSubtopic.slug)?.count ?? 5,
-      5
-    )}
+    totalQuestions={allCards.find(({ card }) => card.slug === selectedSubtopic.slug)?.count ?? 1}
   />
 )}
 

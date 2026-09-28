@@ -4,9 +4,19 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import {Book04Icon,HelpCircleIcon} from '@hugeicons/core-free-icons';
 import Spinner from '../ui/Spinner';
 
-export default function TopicCard({ topic, questionCount = null, isStatsLoading = false }) {
-  const { title, details, description, slug } = topic;
+export default function TopicCard({
+  topic,
+  questionCount = null,
+  isStatsLoading = false,
+  subtopicCount = null,
+}) {
+  const { title, description, slug, subcategories } = topic;
   const hasQuestionCount = isStatsLoading || questionCount !== null;
+  // The live count, not the declared one. The subtopic pages generate a card for
+  // every remaining subcategory in the question bank on top of the declared
+  // subtopics, so a topic that declares five can lead to twenty-nine — the
+  // declared count is only a fallback for before the index lands, or if it fails.
+  const totalSubtopics = subtopicCount ?? Object.keys(subcategories ?? {}).length;
 
   return (
     <article className="motion-card group flex h-full flex-col rounded-xl border border-[#EAEAEA] bg-white p-6 dark:border-border dark:bg-surface">
@@ -35,7 +45,10 @@ export default function TopicCard({ topic, questionCount = null, isStatsLoading 
             className="w-4 h-4 text-accent-ink"
             aria-hidden="true"
           />
-          <span className="text-sm font-medium text-text-strong">{details}</span>
+          <span className="text-sm font-medium text-text-strong">
+            {totalSubtopics} {totalSubtopics === 1 ? 'subtopic' : 'subtopics'}
+            <span className="sr-only"> in {title}</span>
+          </span>
         </div>
 
         {/* Omit the stat entirely when the count is unavailable, rather than

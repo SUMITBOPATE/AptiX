@@ -9,7 +9,11 @@ const DIFFICULTIES = [
   { id: 'adaptive',     label: 'Adaptive', icon: StarsIcon, desc: 'Smart difficulty recommendation', recommended: true },
 ];
 
-const SLIDER_STEPS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+/* Seconds per question, by difficulty. This replaces the per-subtopic
+   `estimatedTime` strings in data/topicData.js, which were written per topic,
+   never depended on how many questions the visitor actually chose, and so
+   reported the same "2-3 min" for 5 questions and for 50. */
+const SECONDS_PER_QUESTION = { easy: 30, medium: 60, hard: 60, all: 60 };
 
 function ClockIcon() {
   return (
@@ -30,33 +34,56 @@ function TargetIcon() {
   );
 }
 
-function getEstimatedTime(subtopic, difficulty, count) {
-  if (!subtopic?.estimatedTime || !subtopic.estimatedTime[difficulty]) return `~${count} min`;
-  return subtopic.estimatedTime[difficulty];
+function getEstimatedTime(difficulty, count) {
+  const seconds = (SECONDS_PER_QUESTION[difficulty] ?? 60) * count;
+
+  if (seconds < 60) return `~${seconds} sec`;
+
+  const minutes = seconds / 60;
+  return `~${Number.isInteger(minutes) ? minutes : minutes.toFixed(1)} min`;
 }
 
 export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficulty = false, totalQuestions = 50 }) {
-  // For company mode (hideDifficulty), use all questions with multiples of 10; otherwise use default steps of 5
-  const isCompanyMode = hideDifficulty;
-  const maxQuestions = isCompanyMode ? totalQuestions : Math.min(totalQuestions, 50);
-  const stepValue = isCompanyMode ? 10 : 5;
-  const minQuestions = isCompanyMode ? 10 : 5;
-  const sliderSteps = isCompanyMode
-    ? Array.from({ length: Math.ceil(maxQuestions / 10) }, (_, i) => Math.min((i + 1) * 10, maxQuestions))
-    : SLIDER_STEPS.filter(s => s <= maxQuestions);
-
-  const [questionCount, setQuestionCount] = useState(minQuestions);
-  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
-
   // In company mode the difficulty picker is hidden, so `selectedDifficulty` is
   // still the untouched 'easy' default. Passing that through meant the quiz page
   // filtered to Easy questions the visitor never asked for and could not see.
   // Send 'all' instead so hiding the control also removes the restriction.
-  const effectiveDifficulty = isCompanyMode ? 'all' : selectedDifficulty;
+  const isCompanyMode = hideDifficulty;
 
-  const config = { subtopic: selectedSubtopic, selectedDifficulty: effectiveDifficulty, count: questionCount };
-  const sliderPercent = ((questionCount - minQuestions) / (maxQuestions - minQuestions)) * 100;
-  const estimatedTime = getEstimatedTime(selectedSubtopic, selectedDifficulty, questionCount);
+  // The top of the range is the number of questions actually available, and the
+  // step is 1 so every one of them is reachable.
+  //
+  // This used to step in fives, which meant a subtopic holding 12 questions set
+  // its maximum to 12 but the slider could only land on 5, 10 — the last two
+  // were unselectable however far it was dragged. The floor was 5 as well, so a
+  // subtopic with three questions had a minimum above its own supply and could
+  // not be configured at all.
+  const maxQuestions = Math.max(1, Number(totalQuestions) || 1);
+  const minQuestions = 1;
+  const stepValue = 1;
+
+  // Five evenly spaced marks across whatever the real range turns out to be,
+  // rather than a fixed list of multiples of five that no longer means anything.
+  // Deduped and floored at the minimum: several subcategories hold exactly one
+  // question, and rounding 1/5 down produced a mark at 0 with nothing to select.
+  const sliderTicks = [
+    ...new Set(Array.from({ length: 5 }, (_, i) => Math.round((maxQuestions * (i + 1)) / 5))),
+  ].filter((tick) => tick >= minQuestions);
+
+  // Default to 10, but never more than the subtopic actually has.
+  const [questionCount, setQuestionCount] = useState(() => Math.min(10, maxQuestions));
+  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+
+  const config = { subtopic: selectedSubtopic, selectedDifficulty: isCompanyMode ? 'all' : selectedDifficulty, count: questionCount };
+  // A subcategory holding a single question makes the range a single point, so
+  // the percentage would divide by zero. That question is the only one on
+  // offer, so the track is full.
+  const sliderPercent = maxQuestions === minQuestions
+    ? 100
+    : ((questionCount - minQuestions) / (maxQuestions - minQuestions)) * 100;
+  // With the picker hidden there is no chosen difficulty, so the middle rate is
+  // the honest one to quote rather than the untouched 'easy' default.
+  const estimatedTime = getEstimatedTime(isCompanyMode ? 'all' : selectedDifficulty, questionCount);
 
   return (
     <div className="fixed inset-0 bg-black/45 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -106,25 +133,38 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
               </span>
             </div>
 
-            {/* Slider with custom track */}
-            <div className="relative pt-2 pb-1">
-              <div className="dialog-slider-track absolute top-1/2 -translate-y-1/2 left-0 right-0 h-[5px] bg-surface-2 rounded-full pointer-events-none -mt-[3px]">
-                <div className="dialog-slider-progress h-full bg-primary rounded-full transition-[width_0.1s]" style={{ width: `${sliderPercent}%` }} />
+            {/* Slider with custom track.
+
+                The visible line and the thumb have to share one centre. The line
+                used to be positioned against this padded parent while the thumb
+                was centred inside the input, so the two centrelines were about
+                5px apart and the dot read as sitting below the line — the
+                -mt-[3px] on the line was a partial fudge for it. The input now
+                sits in a `relative` box of its own with no padding, so
+                `top-1/2 -translate-y-1/2` lands the line exactly on the input's
+                midpoint, which is where the browser centres the thumb once the
+                native runnable track is the full height of the input. See
+                .dialog-slider-runnable-track in index.css. */}
+            <div className="pt-2 pb-1">
+              <div className="relative">
+                <div className="dialog-slider-track absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 bg-surface-2 rounded-full pointer-events-none">
+                  <div className="dialog-slider-progress h-full bg-primary rounded-full transition-[width_0.1s]" style={{ width: `${sliderPercent}%` }} />
+                </div>
+                {/* dialog-slider keeps only the thumb pseudo-element CSS */}
+                <input
+                  type="range"
+                  min={minQuestions} max={maxQuestions} step={stepValue}
+                  value={questionCount}
+                  onChange={(e) => setQuestionCount(Number(e.target.value))}
+                  className="dialog-slider relative block w-full h-5 appearance-none bg-transparent cursor-pointer z-[2]"
+                />
               </div>
-              {/* dialog-slider keeps only the thumb pseudo-element CSS */}
-              <input
-                type="range"
-                min={minQuestions} max={maxQuestions} step={stepValue}
-                value={questionCount}
-                onChange={(e) => setQuestionCount(Number(e.target.value))}
-                className="dialog-slider relative w-full h-5 appearance-none bg-transparent cursor-pointer z-[2]"
-              />
               {/* Tick marks */}
               <div className="flex justify-between px-0.5 mt-1 pointer-events-none">
-                {sliderSteps.map((step) => (
+                {sliderTicks.map((tick) => (
                   <span
-                    key={step}
-                    className={`w-1 h-1 rounded-full transition-colors ${step <= questionCount ? 'bg-primary' : 'bg-border'}`}
+                    key={tick}
+                    className={`w-1 h-1 rounded-full transition-colors ${tick <= questionCount ? 'bg-primary' : 'bg-border'}`}
                   />
                 ))}
               </div>
