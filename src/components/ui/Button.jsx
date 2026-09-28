@@ -11,13 +11,22 @@ const BASE_CLASSES =
 
 // `text-accent-contrast` (#17210a) on the lime-400 fill is 11.07:1. The old
 // `text-white` pairing was 1.51:1 — the primary CTA was effectively unreadable.
+//
+// Every variant carries the button depth treatment: a 1px inset ring to define
+// the control's edge against any fill, and a text shadow so the label keeps its
+// own contrast instead of flattening into the background. The ring is light on
+// the saturated fill and dark on the light ones — a white hairline on a white
+// button is invisible, and a black one on lime reads as dirt.
 const VARIANTS = {
   primary:
-    'bg-lime-400 text-accent-contrast hover:bg-lime-300 shadow-lg shadow-lime-500/25',
+    'bg-lime-400 text-accent-contrast hover:bg-lime-300 shadow-lg shadow-lime-500/25 ' +
+    'inset-ring-1 inset-ring-white/30 text-shadow-2xs',
   secondary:
-    'bg-transparent text-accent-ink border border-accent-ink/40 hover:bg-accent-ink/10 hover:border-accent-ink',
+    'bg-transparent text-accent-ink border border-accent-ink/40 hover:bg-accent-ink/10 hover:border-accent-ink ' +
+    'inset-ring-1 inset-ring-black/10 text-shadow-xs',
   ghost:
-    'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-text dark:hover:bg-surface-2',
+    'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-text dark:hover:bg-surface-2 ' +
+    'text-shadow-xs',
 };
 
 const SIZES = {

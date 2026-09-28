@@ -1,4 +1,5 @@
 import Button from '../components/ui/Button';
+import { COPY } from '../lib/copy';
 import FloatingQuizCards from '../components/home/FloatingQuizCards';
 
 export default function Hero({ onScrollTo }) {
@@ -15,10 +16,13 @@ export default function Hero({ onScrollTo }) {
         <div className="max-w-5xl w-full text-center z-10">
           {/* Status chip. Small text wants slightly POSITIVE tracking (the
               inverse of the display heading), and leading-none lets the
-              padding alone set the chip's height. */}
+              padding alone set the chip's height. The claim is one the app can
+              actually back: there is no sign-up and no paywall anywhere in it.
+              It used to read "Version 1.0 Now Live", which contradicted
+              package.json's 0.0.0. */}
           <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium leading-none tracking-[0.01em] text-gray-600">
             <span className="h-2 w-2 rounded-full bg-accent-ink motion-safe:animate-pulse" aria-hidden="true" />
-            Version 1.0 Now Live
+            No sign-up required
           </div>
 
           {/* Heading.
@@ -45,7 +49,7 @@ export default function Hero({ onScrollTo }) {
           {/* Two distinct paths: browse a topic, or go straight to a mock. */}
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button onClick={() => onScrollTo('topics-section')} className="w-full sm:w-auto">
-              Start Learning
+              {COPY.startLearning}
             </Button>
             <Button
               variant="secondary"
@@ -53,7 +57,7 @@ export default function Hero({ onScrollTo }) {
               showArrow={false}
               className="w-full sm:w-auto"
             >
-              Try a Mock Test
+              {COPY.tryMockTest}
             </Button>
           </div>
         </div>

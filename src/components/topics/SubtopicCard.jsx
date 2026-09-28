@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import {ArrowRight01Icon} from '@hugeicons/core-free-icons';
 import { getSubtopicIcon } from './subtopicIcons';
+import { COPY } from '../../lib/copy';
 import Spinner from '../ui/Spinner';
 
 const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
@@ -24,7 +25,7 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
       >
         {isComingSoon && (
           <span className="absolute right-3 top-3 z-10 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
-            Coming Soon
+            {COPY.comingSoon}
           </span>
         )}
         <div className="flex items-center gap-4">
@@ -38,7 +39,7 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
                  and the name is the whole point of the card. title puts the
                  full string back within reach on hover and on tap. */
               title={subtopic.name}
-              className={`text-base font-semibold text-gray-900 leading-tight truncate ${isComingSoon ? 'pr-24' : 'pr-12'}`}
+              className={`text-base font-semibold text-gray-900 leading-tight truncate ${isComingSoon ? 'pr-24' : 'pr-28'}`}
             >
               {name}
             </h3>
@@ -49,7 +50,10 @@ const SubtopicCard = ({ subtopic, onClick, questionCount = null }) => {
                 {totalQuestions === null ? (
                   <Spinner size="sm" className="h-3 w-3" />
                 ) : (
-                  `0/${totalQuestions}`
+                  /* A plain count. This read `0/29`, and the 0 was hardcoded —
+                     it looked like tracked progress the app does not have,
+                     because there are no accounts and nothing is persisted. */
+                  `${totalQuestions} Questions`
                 )}
               </span>
             )}

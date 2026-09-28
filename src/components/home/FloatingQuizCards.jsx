@@ -6,10 +6,16 @@
  * state, and no "tap an answer" affordance — it has to read as a floating UI
  * mockup, not as something you can touch.
  *
- * There is deliberately no animation. The hero renders on every landing-page
- * visit, which puts it in the high-frequency tier where motion should be
- * reduced to nothing; the depth here comes from static composition
- * (scale, rotation, offset, overlap, surface ramp) instead.
+ * The motion is entirely in `.quiz-card` in index.css, and it is scroll-linked:
+ * each card's distance from the middle card is turned into a horizontal offset
+ * that decays to zero over the first 280px of page scroll. The row starts
+ * further apart on the left and right and closes on the centre as the visitor
+ * scrolls.
+ *
+ * There is deliberately no JavaScript here and no observer. Position is a pure
+ * function of scroll, so it cannot drift out of sync with the scrollbar, and it
+ * needs no state, no listener and no re-render. This component only supplies the
+ * per-card offset. Nothing outside this file and `.quiz-card` is involved.
  */
 
 // Real categories and subtopics from data/topicData.js, with questions whose
@@ -73,8 +79,12 @@ const LAYOUT = [
   { surface: 'outer', offsetY: 40, rotate: 6.5, scale: 0.81, content: 0.58, z: 1, wideOnly: true },
 ];
 
-const SURFACES = {
-  /* These three are deliberately NOT theme tokens. They are a fixed charcoal
+/* Which layout entry is the middle card, and how far each step out from it a
+   card starts. */
+const CENTRE_INDEX = LAYOUT.findIndex(entry => entry.surface === 'center');
+const ENTER_STEP_PX = 40;
+
+const SURFACES = {  /* These three are deliberately NOT theme tokens. They are a fixed charcoal
      set so the row reads as a set of floating UI mockups against any page
      background, and they sit at ~1.1:1 against --color-bg on purpose — the
      border, the drop shadow and the centre card's lime glow do the separating,
@@ -97,7 +107,7 @@ export default function FloatingQuizCards() {
        and the cards have to clear the rails anyway. */
     <div
       aria-hidden="true"
-      className="pointer-events-none relative z-0 mt-6 w-full select-none sm:mt-8"
+      className="quiz-card-row pointer-events-none relative z-0 mt-6 w-full select-none sm:mt-8"
     >
       <div className="quiz-row-mask overflow-hidden">
         {/* The container's own edge already sits inside the 40px rails (main
@@ -107,6 +117,17 @@ export default function FloatingQuizCards() {
             const layout = LAYOUT[i];
             const isCenter = layout.surface === 'center';
 
+            // How far this card starts out from the middle one, so the row opens
+            // further apart on the left and right and closes as the page is
+            // scrolled. 40px per step puts the outer pair 80px out. The earlier
+            // 56px was visible enough to read as the cards sliding, which is
+            // more motion than this decorative row needs.
+            //
+            // The middle card's share is 0, and it is left out of `quiz-card`
+            // entirely: animating it from translateX(0) to translateX(0) would
+            // change nothing while still being composited on every scroll frame.
+            const enterX = (i - CENTRE_INDEX) * ENTER_STEP_PX;
+
             return (
               <div
                 key={card.topic}
@@ -115,6 +136,9 @@ export default function FloatingQuizCards() {
                   rotate: `${layout.rotate}deg`,
                   scale: layout.scale,
                   zIndex: layout.z,
+                  // String, not a number: a CSS custom property is only reliably
+                  // set through setProperty with a string value.
+                  '--card-enter-x': `${enterX}px`,
                 }}
                 /* The overlap must only ever sit BETWEEN two cards that are both
                    rendered. A negative marginLeft on the first *visible* item
@@ -122,7 +146,9 @@ export default function FloatingQuizCards() {
                    line, so justify-center lands the row 26px left of true centre.
                    Card 1 is the first visible card below xl (card 0 is
                    `hidden xl:block`), so only it needs the margin deferred. */
-                className={`relative shrink-0 w-[230px] md:w-[236px] lg:w-[250px] xl:w-[264px] 2xl:w-[286px] ${
+                /* `quiz-card` on the four cards that travel, so the entrance
+                   applies to them and not to the middle one. */
+                className={`${enterX === 0 ? '' : 'quiz-card '}relative shrink-0 w-[230px] md:w-[236px] lg:w-[250px] xl:w-[264px] 2xl:w-[286px] ${
                   i === 0 ? '' : i === 1 ? 'xl:-ml-[52px]' : '-ml-[52px]'
                 } ${layout.wideOnly ? 'hidden xl:block' : ''}`}
               >

@@ -70,10 +70,10 @@ export default function QuizHeader({ currentIndex, totalQuestions, timer, score,
 
         <div className="w-px h-5 bg-border" />
 
-        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface t-interactive">
+        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface t-interactive hover:inset-ring-1 hover:inset-ring-black/10">
           <BookmarkIcon />
         </button>
-        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface t-interactive">
+        <button className="flex items-center p-1 rounded-md text-text-muted cursor-pointer bg-transparent border-none hover:text-text-strong hover:bg-surface t-interactive hover:inset-ring-1 hover:inset-ring-black/10">
           <SettingsIcon />
         </button>
       </div>

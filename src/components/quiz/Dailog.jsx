@@ -88,7 +88,7 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
           {/* Close */}
           <button
             onClick={onClose}
-            className="bg-transparent border border-border rounded-lg w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-surface hover:border-[#c3c3c3] t-interactive shrink-0 mt-0.5"
+            className="bg-transparent border border-border rounded-lg w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-surface hover:border-[#c3c3c3] t-interactive shrink-0 mt-0.5 inset-ring-1 inset-ring-black/10"
           >
             <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
           </button>
@@ -166,9 +166,9 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
                     <button
                       key={diff.id}
                       onClick={() => setSelectedDifficulty(diff.id)}
-                      className={`press relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left ${
+                      className={`press relative flex flex-col items-start gap-[0.05rem] px-3 py-2 border-[1.5px] border-dashed rounded-xl cursor-pointer text-left inset-ring-1 inset-ring-black/10 text-shadow-xs ${
                         active
-                          ? 'border-primary dark:border-lime-400/50 bg-lime-50 dark:bg-lime-400/[0.07]'
+                          ? 'border-primary dark:border-lime-400/50 bg-lime-50 dark:bg-lime-400/[0.07] inset-ring-primary/40'
                           : 'border-border bg-surface hover:border-[#c3c3c3] dark:hover:border-lime-400/20 hover:bg-surface-2'
                       }`}
                     >
@@ -192,13 +192,13 @@ export default function Dialog({ onClose, selectedSubtopic, onStart, hideDifficu
         <div className="flex gap-2.5 px-5 py-3 border-t border-dashed border-border bg-surface">
           <button
             onClick={onClose}
-            className="press flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center bg-white dark:bg-surface text-text border-[1.5px] border-border hover:bg-surface-2"
+            className="press flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center bg-white dark:bg-surface text-text border-[1.5px] border-border hover:bg-surface-2 inset-ring-1 inset-ring-black/10 text-shadow-xs"
           >
             Exit
           </button>
           <button
             onClick={() => onStart(config)}
-            className="press flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center bg-lime-400 text-accent-contrast border-none hover:bg-lime-300"
+            className="press flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-center bg-lime-400 text-accent-contrast border-none hover:bg-lime-300 inset-ring-1 inset-ring-white/30 text-shadow-2xs"
           >
             Start Practice →
           </button>

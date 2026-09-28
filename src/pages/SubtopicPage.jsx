@@ -9,6 +9,7 @@ import Checklist from '../icons/Checklist';
 import {useState, useEffect} from 'react';
 import { getSubcategoryIndexRows } from '../lib/supabase';
 import { buildSubtopicCards } from '../lib/subtopics';
+import { COPY } from '../lib/copy';
 import BackButton from '../components/ui/BackButton';
 import LoadingState from '../components/ui/LoadingState';
 
@@ -133,11 +134,8 @@ function SubtopicPage() {
             </div>
 
             <div className="flex-1 min-w-0 ml-4 relative">
-              <div className="text-base text-gray-900 dark:text-text-strong font-medium pr-16">
-                Mixed Mock Test
-                <span className="relative ml-2.5 px-1.5 py-0.5 rounded-4xl bg-lime-200 dark:bg-lime-400/15 dark:text-lime-300 dark:border dark:border-lime-400/10 text-xs font-medium text-gray-600">
-                  0 Attempted
-                </span>
+              <div className="text-base text-gray-900 dark:text-text-strong font-medium">
+                {COPY.mixedMockTest}
                 <p className="text-sm text-gray-600 dark:text-text-muted font-normal mt-0.5">
                   Practice questions from multiple categories in a real test environment
                 </p>

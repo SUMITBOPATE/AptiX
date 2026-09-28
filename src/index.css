@@ -170,6 +170,64 @@ label {
   transform: none;
 }
 
+/* Hero quiz-card row — scroll-linked convergence.
+   The cards start further apart on the left and right and move inward toward the
+   centre as the page is scrolled. Only `translateX` is animated: the design,
+   size, content, and the existing rotation/scale composition are all untouched,
+   and because those are individual CSS properties they compose with `transform`
+   rather than being overwritten by it.
+
+   The middle card carries no `quiz-card`, so it is not animated: its share of the
+   spread is zero, and an animation from translateX(0) to translateX(0) would
+   change nothing while still being composited on every scroll frame.
+
+   `scroll(root block)` rather than a `view()` timeline. The row sits near the top
+   of the page, and a view timeline is measured against the element's own position
+   in the viewport, so on a tall screen the cards would already be part-way
+   converged at scroll zero. A document range is viewport-independent: the row
+   starts spread at the top of the page and the motion is finished well before
+   the middle of the document.
+
+   Three stops, so the row breathes: spread, closed on the centre, spread again.
+   `animation-range` splits a scroll-linked animation into equal segments, one
+   per extra value, so `0 A B` closes over A and reopens over B — and the speed of
+   each half is set by that scroll distance, not by any duration. There is no
+   duration to tune here. To converge once and hold instead, drop the middle
+   value: `animation-range: 0 120px`.
+
+   These three numbers are the feel of the effect and are expected to move: keep
+   the middle strictly between the first and last, or the range is invalid, the
+   property is ignored, and the animation falls back to the whole page scroll.
+
+   `linear` is deliberate. A scroll-linked animation scrubbed with an easing
+   function front-loads the movement and then stalls, which reads as a snap
+   followed by a drift. Position proportional to scroll is the honest mapping
+   and is what makes it feel smooth.
+
+   Guarded twice. Without `animation-timeline` support the `animation` shorthand
+   would fall back to a time-based animation and fire the whole convergence on
+   load, so the rule only exists inside `@supports`; under reduced motion the
+   cards simply sit at their composed position. No !important is needed, because
+   nothing outside this block sets a transform on `.quiz-card`. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .quiz-card {
+      animation: quiz-card-converge linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 60px 120px;
+    }
+  }
+}
+
+@keyframes quiz-card-converge {
+  from {
+    transform: translateX(var(--card-enter-x, 0px));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .motion-card {
   box-shadow: 0 0 0 rgb(0 0 0 / 0);
   transition: box-shadow var(--duration-base) var(--ease-out);
@@ -343,40 +401,11 @@ label {
   );
 }
 
-/* Navbar edges step toward the centre once the page is scrolled, so the bar
-   gives back some of the reading width while content passes under it.
-
-   Transform only. Animating width or margin here would relayout the whole nav
-   on every scroll tick; translateX stays on the compositor. A transition rather
-   than a keyframe, because a scroll direction change mid-flight has to retarget
-   smoothly instead of restarting from zero.
-
-   The distance is fluid rather than fixed. A single large value collides with
-   the centre links at the md breakpoint, where the three labels leave only
-   ~110px of clearance; a single small one looks inert on a 27" display. So the
-   travel scales with the viewport — 61px at 768, 109px at 1366, 154px at 1920
-   — and stays clear of the links at every width.
-
-   ease-in-out, not ease-out: this is an element repositioning on screen rather
-   than entering or responding to a tap, and it has to read as deliberate in
-   both directions — the trip out and the trip back. Still under the 300ms UI
-   cap at --duration-slow. */
-.nav-edge-left,
-.nav-edge-right {
-  transition: transform var(--duration-slow) var(--ease-in-out);
-}
-
-/* Desktop only: below md the centre links are hidden, so there is nothing for
-   the edges to move toward and the shift would just look broken. */
-@media (min-width: 768px) {
-  .theme-navbar[data-scrolled='true'] .nav-edge-left {
-    transform: translateX(clamp(4rem, 8vw, 11rem));
-  }
-
-  .theme-navbar[data-scrolled='true'] .nav-edge-right {
-    transform: translateX(calc(-1 * clamp(4rem, 8vw, 11rem)));
-  }
-}
+/* The navbar edges used to step toward the centre once the page was scrolled, so
+   the bar gave back some reading width while content passed under it. Removed:
+   the navbar is fixed chrome, so it moved on every scroll — including small
+   ones — and the reading-width gain was not worth motion the visitor did not
+   ask for. The edges are now ordinary flex children and never move. */
 
 @media (prefers-reduced-motion: reduce) {
   /* Must match the [data-armed] specificity, otherwise the armed rule keeps
@@ -394,12 +423,6 @@ label {
   #mobile-menu {
     translate: 0 0;
     scale: 1;
-  }
-
-  .nav-edge-left,
-  .nav-edge-right {
-    transition: none;
-    transform: none;
   }
 
   .ambient-blob {
