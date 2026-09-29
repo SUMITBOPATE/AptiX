@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getMockQuestions, getQuestionsBySlug } from '../lib/supabase.js';
 import { COPY } from '../lib/copy';
+import { selectByDifficulty, isExactlyDifficulty } from '../lib/difficulty';
 import { getQuestionOptions, getCorrectOptionText, isCorrectOption } from '../lib/answers';
 import QuizHeader from '../components/quiz/QuizHeader.jsx';
 import QuizNav from '../components/quiz/QuizNav.jsx';
@@ -66,17 +67,8 @@ export default function QuizPage() {
   const filteredQuestions = useMemo(() => {
     const uniqueQuestions = getUniqueQuestions(allQuestions);
 
-    const matchesDifficulty = (question) => {
-      const difficulty = selectedDifficulty?.toLowerCase();
-      const isCompanyQuestion = question.company !== null && question.company !== undefined;
-
-      return difficulty === 'all'
-        || isCompanyQuestion
-        || (question.difficulty || question.level || '').toLowerCase() === difficulty;
-    };
-
     if (!isMockTest) {
-      return uniqueQuestions.filter(matchesDifficulty).slice(0, count || 10);
+      return selectByDifficulty(uniqueQuestions, selectedDifficulty, count || 10);
     }
 
     // Company-tagged questions get their own pool; otherwise use broad aptitude
@@ -96,11 +88,13 @@ export default function QuizPage() {
       return result;
     }, {});
     const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-    // Prefer the selected difficulty within every category. If a category has no
-    // questions at that level, retain it using its available questions instead of
-    // returning a Quant-only mock.
+    // Prefer the questions that actually state the selected difficulty within
+    // every category. If a category has none at that level, retain it using its
+    // available questions instead of returning a Quant-only mock.
     const buckets = Object.values(groups).map((questions) => {
-      const difficultyMatches = questions.filter(matchesDifficulty);
+      const difficultyMatches = questions.filter((question) =>
+        isExactlyDifficulty(question, selectedDifficulty)
+      );
       return shuffle(difficultyMatches.length ? difficultyMatches : questions);
     });
     const mixedQuestions = [];

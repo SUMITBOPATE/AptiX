@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getQuestions } from '../lib/supabase';
 import { companiesData } from '../../data/companies';
 import { COPY } from '../lib/copy';
+import { selectByDifficulty } from '../lib/difficulty';
 import { getQuestionOptions, getCorrectOptionText, isCorrectOption } from '../lib/answers';
 import QuizHeader from '../components/quiz/QuizHeader';
 import QuizNav from '../components/quiz/QuizNav';
@@ -85,23 +86,13 @@ export default function CompanyQuizPage() {
 
   // Difficulty was being read from the dialog config and then never applied,
   // so picking Hard or Medium in the setup dialog silently returned the same
-  // questions as Easy. Mirrors QuizPage's matchesDifficulty, minus the
-  // isCompanyQuestion escape hatch (everything here is already company-scoped).
-  const matchesDifficulty = (question) => {
-    const difficulty = selectedDifficulty?.toLowerCase();
-    return (
-      !difficulty ||
-      difficulty === 'all' ||
-      `${question?.difficulty || question?.level || ''}`.toLowerCase() === difficulty
-    );
-  };
-
-  // Order matters: filter by difficulty FIRST, then take the requested number.
-  // The old code did the opposite — it sliced inside the fetch and filtered
-  // afterwards — so asking for 10 Medium questions could return nothing even
-  // when the company had dozens.
-  const filteredQuestions = getUniqueQuestions(allQuestions.filter(matchesDifficulty)).slice(
-    0,
+  // questions as Easy. Order matters too: select by difficulty first, then take
+  // the requested number. The old code sliced inside the fetch and filtered
+  // afterwards, so asking for 10 Medium questions could return nothing even when
+  // the company had dozens.
+  const filteredQuestions = selectByDifficulty(
+    getUniqueQuestions(allQuestions),
+    selectedDifficulty,
     questionsCount
   );
   const total = filteredQuestions.length;
